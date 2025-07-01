@@ -1,12 +1,14 @@
 // 페이지 로드 시 실행
 document.addEventListener('DOMContentLoaded', () => {
     updateCurrentChallenge();
+    loadForkCount();
     initProfileSearch();
     initSampleTabs();
 });
 
 // 즉시 실행으로 더 빠르게 표시
 updateCurrentChallenge();
+loadForkCount();
 
 // 현재 챌린지 정보 업데이트 (한국 시간 기준)
 function updateCurrentChallenge() {
@@ -206,7 +208,9 @@ function parseRecordMd(content) {
                 const period = parts[1];
                 const week = parts[2];
                 const commits = parseInt(parts[3]) || 0;
-                const success = parts[4].includes('성공');
+                // 성공 여부 판정: ✅가 포함되어 있고 진행중이 아닌 경우만 성공으로 판정
+                const statusText = parts[4] || '';
+                const success = statusText.includes('✅') && !statusText.includes('🔄') && !statusText.includes('진행중');
                 
                 records.push({
                     period,
@@ -256,12 +260,15 @@ function calculateStats(records) {
     // 현재 주차 데이터 찾기 (최신 기록을 현재 주차로 가정)
     const currentWeekData = records[0];
     
-    // 연속 성공 주차 계산
+    // 연속 성공 주차 계산 (진행중은 제외)
     let currentStreak = 0;
     for (const record of records) {
+        // record에는 이미 파싱된 데이터가 들어있음 (period, week, commits, success)
+        // success는 이미 ✅나 성공 여부로 계산됨
         if (record.success) {
             currentStreak++;
         } else {
+            // 실패 기록이면 연속 중단
             break;
         }
     }
@@ -375,4 +382,18 @@ function initSampleTabs() {
             }
         });
     });
+}
+
+// Fork 수 로드 (참여자 수)
+async function loadForkCount() {
+    try {
+        const response = await fetch('https://api.github.com/repos/tlqhrm/weekly-commit-challenge');
+        const data = await response.json();
+        
+        const forkCount = data.forks_count || 0;
+        document.getElementById('totalParticipants').textContent = forkCount;
+    } catch (error) {
+        console.error('Fork 수 로드 실패:', error);
+        document.getElementById('totalParticipants').textContent = '0';
+    }
 }
