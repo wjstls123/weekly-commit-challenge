@@ -1,0 +1,38 @@
+{
+  "name": "weekly-commit-challenge-lambda",
+  "version": "2.0.0",
+  "description": "Lambda functions for Weekly Commit Challenge - Main handler and Stats aggregator",
+  "main": "weekly-commit-simple.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1.0",
+    "jsonwebtoken": "^9.0.0",
+    "jwks-rsa": "^3.0.0"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "github",
+    "oidc",
+    "weekly-commit-challenge",
+    "stats-aggregator"
+  ],
+  "author": "",
+  "license": "MIT",
+  "functions": {
+    "weekly-commit-simple": {
+      "description": "Main handler for GitHub Actions workflow",
+      "handler": "weekly-commit-simple.handler",
+      "timeout": 30,
+      "memory": 512
+    },
+    "stats-aggregator": {
+      "description": "EventBridge triggered stats aggregation",
+      "handler": "stats-aggregator.handler", 
+      "timeout": 300,
+      "memory": 1024
+    }
+  }
+}

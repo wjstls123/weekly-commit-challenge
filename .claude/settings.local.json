@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(python3:*)",
+      "Bash(rm:*)",
+      "Bash(open index.html)",
+      "Bash(open test.html)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}

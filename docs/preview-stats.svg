@@ -1,0 +1,75 @@
+<!-- 통계 카드 예시 -->
+<svg width="450" height="200" viewBox="0 0 450 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0.5" y="0.5" rx="4.5" height="99%" stroke="#e4e2e2" width="99%" fill="#fffefe" stroke-opacity="1"/>
+    
+    <!-- 제목 -->
+    <g transform="translate(25, 35)">
+        <text x="0" y="0" fill="#2f80ed" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="18px" font-weight="600">
+            Weekly Commit Stats
+        </text>
+    </g>
+    
+    <!-- 통계 항목들 -->
+    <g transform="translate(25, 70)">
+        <!-- 첫 번째 행 -->
+        <g transform="translate(0, 0)">
+            <!-- 이번 주 커밋 -->
+            <g transform="translate(0, 0)">
+                <circle cx="8" cy="8" r="4" fill="#28a745"/>
+                <text x="20" y="6" fill="#434d58" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="12px">
+                    이번 주 커밋
+                </text>
+                <text x="20" y="18" fill="#2f80ed" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="16px" font-weight="700">
+                    15
+                </text>
+            </g>
+            
+            <!-- 총 주차 -->
+            <g transform="translate(150, 0)">
+                <circle cx="8" cy="8" r="4" fill="#4c71f2"/>
+                <text x="20" y="6" fill="#434d58" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="12px">
+                    총 참여 주차
+                </text>
+                <text x="20" y="18" fill="#2f80ed" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="16px" font-weight="700">
+                    15
+                </text>
+            </g>
+        </g>
+        
+        <!-- 두 번째 행 -->
+        <g transform="translate(0, 45)">
+            <!-- 성공률 -->
+            <g transform="translate(0, 0)">
+                <circle cx="8" cy="8" r="4" fill="#28a745"/>
+                <text x="20" y="6" fill="#434d58" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="12px">
+                    성공률
+                </text>
+                <text x="20" y="18" fill="#2f80ed" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="16px" font-weight="700">
+                    80.0%
+                </text>
+            </g>
+            
+            <!-- 최장 연속 -->
+            <g transform="translate(150, 0)">
+                <circle cx="8" cy="8" r="4" fill="#ffa500"/>
+                <text x="20" y="6" fill="#434d58" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="12px">
+                    최장 연속
+                </text>
+                <text x="20" y="18" fill="#2f80ed" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="16px" font-weight="700">
+                    8주
+                </text>
+            </g>
+        </g>
+    </g>
+    
+    <!-- 우측 현재 상태 -->
+    <g transform="translate(320, 70)">
+        <rect x="0" y="0" width="100" height="60" rx="8" fill="#28a745" opacity="0.1" stroke="#28a745" stroke-opacity="0.3"/>
+        <text x="50" y="20" fill="#28a745" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="12px" text-anchor="middle" font-weight="600">
+            2025년 26주차
+        </text>
+        <text x="50" y="40" fill="#28a745" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="14px" text-anchor="middle" font-weight="700">
+            ✅ 성공
+        </text>
+    </g>
+</svg>

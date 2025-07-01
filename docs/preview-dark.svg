@@ -1,0 +1,68 @@
+<!-- 다크 테마 카드 예시 -->
+<svg width="400" height="200" viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- 배경 -->
+    <rect x="0.5" y="0.5" rx="4.5" height="99%" stroke="#30363d" width="99%" fill="#151515" stroke-opacity="1"/>
+    
+    <!-- 제목 -->
+    <g transform="translate(25, 35)">
+        <text x="0" y="0" fill="#58a6ff" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-weight="600" font-size="16px">
+            📊 Weekly Commit Challenge
+        </text>
+    </g>
+    
+    <!-- 메인 컨텐츠 영역 -->
+    <g transform="translate(25, 65)">
+        <!-- 주차 정보 -->
+        <g transform="translate(0, 0)">
+            <circle cx="8" cy="8" r="6" fill="#58a6ff" opacity="0.2"/>
+            <circle cx="8" cy="8" r="3" fill="#58a6ff"/>
+            <text x="25" y="5" fill="#c9d1d9" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="14px" font-weight="600">
+                6/23 ~ 6/29
+            </text>
+            <text x="25" y="20" fill="#c9d1d9" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="12px" opacity="0.7">
+                2025년 26주차
+            </text>
+        </g>
+        
+        <!-- 통계 정보 -->
+        <g transform="translate(0, 45)">
+            <!-- 커밋 수 -->
+            <g transform="translate(0, 0)">
+                <rect x="0" y="0" width="16" height="16" rx="2" fill="#79c0ff" opacity="0.1"/>
+                <text x="8" y="12" fill="#79c0ff" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="10px" text-anchor="middle" font-weight="600">📝</text>
+                <text x="25" y="12" fill="#c9d1d9" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="14px">
+                    커밋 수: 
+                    <tspan fill="#58a6ff" font-weight="600">15개</tspan>
+                </text>
+            </g>
+            
+            <!-- 성공 상태 -->
+            <g transform="translate(0, 25)">
+                <rect x="0" y="0" width="16" height="16" rx="2" fill="#28a745" opacity="0.1"/>
+                <text x="8" y="12" fill="#28a745" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="10px" text-anchor="middle" font-weight="600">✅</text>
+                <text x="25" y="12" fill="#c9d1d9" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="14px">
+                    상태: 
+                    <tspan fill="#28a745" font-weight="600">성공</tspan>
+                </text>
+            </g>
+        </g>
+        
+        <!-- 업데이트 시간 -->
+        <g transform="translate(0, 105)">
+            <text x="0" y="0" fill="#c9d1d9" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="10px" opacity="0.5">
+                마지막 업데이트: 7월 1일 09:00
+            </text>
+        </g>
+    </g>
+    
+    <!-- 우측 장식 -->
+    <g transform="translate(340, 30)">
+        <circle cx="20" cy="20" r="15" fill="#58a6ff" opacity="0.1"/>
+        <text x="20" y="27" fill="#58a6ff" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="20px" text-anchor="middle" font-weight="600">
+            26
+        </text>
+        <text x="20" y="40" fill="#c9d1d9" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="8px" text-anchor="middle" opacity="0.7">
+            주차
+        </text>
+    </g>
+</svg>

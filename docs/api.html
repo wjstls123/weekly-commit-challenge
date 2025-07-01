@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Commit Challenge API</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .content {
+            padding: 30px;
+        }
+        .api-endpoint {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .api-url {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        .badge-demo {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .usage-example {
+            background: #e7f3ff;
+            border-left: 4px solid #0066cc;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Weekly Commit Challenge API</h1>
+            <p>GitHub Pages를 활용한 실시간 배지 및 데이터 API</p>
+        </div>
+        
+        <div class="content">
+            <h2>🎯 API 엔드포인트</h2>
+            
+            <div class="api-endpoint">
+                <h3>1. JSON 데이터 API</h3>
+                <p>사용자의 최신 주간 커밋 기록을 JSON 형태로 제공</p>
+                <div class="api-url" id="json-api-url">
+                    https://{username}.github.io/weekly-commit-challange/api/data.json
+                </div>
+                <button onclick="copyToClipboard('json-api-url')">📋 복사</button>
+            </div>
+
+            <div class="api-endpoint">
+                <h3>2. 배지 이미지 API</h3>
+                <p>실시간 커밋 상태를 SVG 배지로 제공</p>
+                <div class="api-url" id="badge-api-url">
+                    https://{username}.github.io/weekly-commit-challange/api/badge.svg
+                </div>
+                <button onclick="copyToClipboard('badge-api-url')">📋 복사</button>
+                
+                <div class="badge-demo">
+                    <h4>배지 예시:</h4>
+                    <img id="demo-badge" src="data:image/svg+xml;base64," alt="Weekly Commit Badge">
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <h3>3. 임베드 위젯 API</h3>
+                <p>다른 사이트에 임베드할 수 있는 HTML 위젯</p>
+                <div class="api-url" id="widget-api-url">
+                    https://{username}.github.io/weekly-commit-challange/api/widget.html
+                </div>
+                <button onclick="copyToClipboard('widget-api-url')">📋 복사</button>
+            </div>
+
+            <h2>📖 사용 방법</h2>
+            
+            <div class="usage-example">
+                <h3>README.md에 배지 추가:</h3>
+                <div class="code">![Weekly Commit Challenge](https://YOUR_USERNAME.github.io/weekly-commit-challange/api/badge.svg)</div>
+            </div>
+
+            <div class="usage-example">
+                <h3>HTML에서 사용:</h3>
+                <div class="code">&lt;img src="https://YOUR_USERNAME.github.io/weekly-commit-challange/api/badge.svg" alt="Weekly Commit Badge"&gt;</div>
+            </div>
+
+            <div class="usage-example">
+                <h3>JavaScript로 데이터 가져오기:</h3>
+                <div class="code">fetch('https://YOUR_USERNAME.github.io/weekly-commit-challange/api/data.json')
+  .then(response => response.json())
+  .then(data => {
+    console.log('주간 커밋:', data.commitCount);
+    console.log('성공 여부:', data.success);
+  });</div>
+            </div>
+
+            <h2>🔧 설정 방법</h2>
+            <ol>
+                <li>GitHub Pages 활성화 (Settings → Pages → Source: Deploy from a branch)</li>
+                <li>워크플로우가 record.md 파일 생성/업데이트</li>
+                <li>JavaScript가 record.md에서 JSON 추출하여 API 파일 생성</li>
+                <li>실시간으로 배지와 데이터 제공</li>
+            </ol>
+
+            <div id="current-data" style="display: none;">
+                <h2>📊 현재 데이터</h2>
+                <div id="data-display"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 페이지 로드 시 현재 사용자의 데이터 로드 시도
+        async function loadCurrentData() {
+            try {
+                // record.md에서 JSON 데이터 추출
+                const response = await fetch('../record.md');
+                const text = await response.text();
+                
+                // JSON 블록 추출
+                const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/);
+                if (jsonMatch) {
+                    const data = JSON.parse(jsonMatch[1]);
+                    
+                    // 현재 데이터 표시
+                    document.getElementById('current-data').style.display = 'block';
+                    document.getElementById('data-display').innerHTML = `
+                        <div class="api-endpoint">
+                            <h4>📅 ${data.period}</h4>
+                            <p><strong>주차:</strong> ${data.year}년 ${data.weekNumber}주차</p>
+                            <p><strong>커밋 수:</strong> ${data.commitCount}개</p>
+                            <p><strong>상태:</strong> ${data.status}</p>
+                            <p><strong>성공 여부:</strong> ${data.success ? '✅ 성공' : '❌ 진행중'}</p>
+                            <p><strong>업데이트:</strong> ${new Date(data.lastUpdated).toLocaleString('ko-KR')}</p>
+                        </div>
+                    `;
+                    
+                    // 배지 생성 및 표시
+                    generateBadge(data);
+                }
+            } catch (error) {
+                console.log('데이터 로드 실패:', error);
+            }
+        }
+
+        // 배지 SVG 생성
+        function generateBadge(data) {
+            const status = data.success ? '성공' : '진행중';
+            const color = data.success ? '#4c1' : '#fe7d37';
+            const commitText = `${data.commitCount}개 커밋`;
+            
+            const svg = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="180" height="20">
+                    <linearGradient id="b" x2="0" y2="100%">
+                        <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+                        <stop offset="1" stop-opacity=".1"/>
+                    </linearGradient>
+                    <mask id="a">
+                        <rect width="180" height="20" rx="3" fill="#fff"/>
+                    </mask>
+                    <g mask="url(#a)">
+                        <path fill="#555" d="M0 0h90v20H0z"/>
+                        <path fill="${color}" d="M90 0h90v20H90z"/>
+                        <path fill="url(#b)" d="M0 0h180v20H0z"/>
+                    </g>
+                    <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11">
+                        <text x="45" y="15" fill="#010101" fill-opacity=".3">${data.weekNumber}주차</text>
+                        <text x="45" y="14">${data.weekNumber}주차</text>
+                        <text x="135" y="15" fill="#010101" fill-opacity=".3">${status}</text>
+                        <text x="135" y="14">${status}</text>
+                    </g>
+                </svg>
+            `;
+            
+            const base64 = btoa(unescape(encodeURIComponent(svg)));
+            document.getElementById('demo-badge').src = `data:image/svg+xml;base64,${base64}`;
+        }
+
+        // 클립보드 복사
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('클립보드에 복사되었습니다!');
+            });
+        }
+
+        // 페이지 로드 시 실행
+        loadCurrentData();
+    </script>
+</body>
+</html>

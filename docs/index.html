@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>위클리 커밋 챌린지</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_MEASUREMENT_ID');
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔥 위클리 커밋 챌린지</h1>
+            <p class="subtitle">일주일에 한 번은 꼭 커밋하는 습관을 기록하고 추적해보세요!</p>
+            <div class="current-challenge">
+                <span class="challenge-badge" id="currentChallenge">
+                    <span class="badge-icon">📅</span>
+                    <span class="badge-text"></span>
+                </span>
+                <p class="challenge-info">지금 참여하면 이번 주부터 기록이 시작됩니다</p>
+            </div>
+        </header>
+
+        <section class="stats">
+            <div class="stat-card">
+                <h3>누적 참여자</h3>
+                <p class="stat-number" id="totalParticipants">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>이번 주 참여자</h3>
+                <p class="stat-number" id="weeklyParticipants">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>이번 주 성공자</h3>
+                <p class="stat-number" id="weeklySuccessful">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>최장 연속 기록</h3>
+                <p class="stat-number" id="longestStreak">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>평균 성공률</h3>
+                <p class="stat-number" id="averageSuccessRate">-</p>
+            </div>
+        </section>
+
+        <section class="ranking">
+            <h2>🏆 챌린지 랭킹</h2>
+            <div class="ranking-filters">
+                <button class="filter-btn active" data-filter="streak">연속 주차</button>
+                <button class="filter-btn" data-filter="total">총 커밋 수</button>
+                <button class="filter-btn" data-filter="recent">최근 활동</button>
+            </div>
+            <div id="rankingList" class="ranking-list">
+                <div class="loading">랭킹을 불러오는 중...</div>
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h2>📝 참여 방법</h2>
+            <div class="steps-vertical">
+                <div class="step-vertical">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <h3>이 레포지토리 Fork 하기</h3>
+                    </div>
+                    <p>GitHub에서 이 레포지토리를 Fork하여 본인 계정으로 복사하세요.</p>
+                    <a href="https://github.com/your-username/weekly-commit-challenge/fork" target="_blank" class="fork-btn">🍴 Fork Repository</a>
+                </div>
+                
+                <div class="step-vertical">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <h3>GitHub Actions 활성화</h3>
+                    </div>
+                    <p>Fork한 레포지토리의 Actions 탭에서 워크플로우를 활성화하세요.</p>
+                    <p class="step-example">Repository → Actions → "I understand my workflows, go ahead and enable them"</p>
+                </div>
+                
+                <div class="step-vertical">
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <h3>일주일에 한 번 커밋하기!</h3>
+                    </div>
+                    <p>매주 월요일에 지난 일주일간의 커밋을 자동으로 체크하고 기록합니다.</p>
+                    <p class="step-highlight">✅ 일주일에 한 번만 커밋해도 성공 기록!</p>
+                    <p class="step-highlight">📊 README에 참여 내역이 테이블로 누적됩니다</p>
+                    <div class="record-info">
+                        <h4>📈 참여 기록 예시</h4>
+                        <table class="example-table">
+                            <thead>
+                                <tr>
+                                    <th>기간</th>
+                                    <th>주차</th>
+                                    <th>커밋 수</th>
+                                    <th>성공 여부</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2024-01-01 ~ 2024-01-07</td>
+                                    <td>1주차</td>
+                                    <td>5</td>
+                                    <td>✅ 성공</td>
+                                </tr>
+                                <tr>
+                                    <td>2024-01-08 ~ 2024-01-14</td>
+                                    <td>2주차</td>
+                                    <td>3</td>
+                                    <td>✅ 성공</td>
+                                </tr>
+                                <tr>
+                                    <td>2024-01-15 ~ 2024-01-21</td>
+                                    <td>3주차</td>
+                                    <td>0</td>
+                                    <td>❌ 실패</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="fork-info">
+                <h3>🎯 간단한 참여 방법</h3>
+                <div class="fork-benefits">
+                    <div class="benefit-item">
+                        <span class="benefit-icon">⚡</span>
+                        <div>
+                            <h4>빠른 시작</h4>
+                            <p>Fork 후 Actions 활성화만 하면 완료</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">📊</span>
+                        <div>
+                            <h4>자동 기록</h4>
+                            <p>매주 커밋 내역이 테이블로 자동 누적</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">🔄</span>
+                        <div>
+                            <h4>지속적 추적</h4>
+                            <p>주차별 성공/실패 기록을 한눈에 확인</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="repo-info">
+                    <p><strong>📂 레포지토리 구조:</strong></p>
+                    <ul>
+                        <li><code>.github/workflows/weekly-commit-tracker.yml</code> - 커밋 추적 워크플로우</li>
+                        <li><code>docs/</code> - 챌린지 대시보드 웹사이트</li>
+                        <li><code>README.md</code> - 프로젝트 설명 및 참여 가이드</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>Made with ❤️ for developers who love consistent commits</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="card-generator.js"></script>
+    <script src="generate-api.js"></script>
+</body>
+</html>
