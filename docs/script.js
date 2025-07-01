@@ -1,14 +1,15 @@
 // 페이지 로드 시 실행
 document.addEventListener('DOMContentLoaded', () => {
     updateCurrentChallenge();
-    loadForkCount();
+    loadForkStatistics();
     initProfileSearch();
     initSampleTabs();
+    setupRankingFilters();
 });
 
 // 즉시 실행으로 더 빠르게 표시
 updateCurrentChallenge();
-loadForkCount();
+loadForkStatistics();
 
 // 현재 챌린지 정보 업데이트 (한국 시간 기준)
 function updateCurrentChallenge() {
@@ -384,16 +385,327 @@ function initSampleTabs() {
     });
 }
 
-// Fork 수 로드 (참여자 수)
-async function loadForkCount() {
+// Fork 통계 로드
+async function loadForkStatistics() {
     try {
-        const response = await fetch('https://api.github.com/repos/tlqhrm/weekly-commit-challenge');
-        const data = await response.json();
+        // 기본 통계 초기화
+        document.getElementById('totalParticipants').textContent = '-';
+        document.getElementById('activeParticipants').textContent = '-';
+        document.getElementById('recordHolders').textContent = '-';
+        document.getElementById('weeklySuccessful').textContent = '-';
+        document.getElementById('averageStreak').textContent = '-';
         
-        const forkCount = data.forks_count || 0;
-        document.getElementById('totalParticipants').textContent = forkCount;
+        console.log('Fork 통계 로드 시작...');
+        
+        // 1. Fork 리스트 가져오기
+        const forks = await getAllForks('tlqhrm', 'weekly-commit-challenge');
+        console.log(`총 ${forks.length}개의 fork 발견`);
+        
+        // 2. 기본 통계
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        
+        const activeForks = forks.filter(fork => {
+            const lastPush = new Date(fork.pushed_at);
+            return lastPush > thirtyDaysAgo;
+        });
+        
+        document.getElementById('totalParticipants').textContent = forks.length;
+        document.getElementById('activeParticipants').textContent = activeForks.length;
+        
+        // 3. record.md 분석 (배치로 실행)
+        analyzeRecordFiles(forks);
+        
+        // 4. 랭킹 데이터 수집 (비동기)
+        setTimeout(() => {
+            collectAndDisplayRanking();
+        }, 1000);
+        
     } catch (error) {
-        console.error('Fork 수 로드 실패:', error);
+        console.error('Fork 통계 로드 실패:', error);
         document.getElementById('totalParticipants').textContent = '0';
+        document.getElementById('activeParticipants').textContent = '0';
+        document.getElementById('recordHolders').textContent = '0';
+        document.getElementById('weeklySuccessful').textContent = '0';
+        document.getElementById('averageStreak').textContent = '0';
     }
+}
+
+// 모든 Fork 가져오기 (페이지네이션 처리)
+async function getAllForks(owner, repo) {
+    const forks = [];
+    let page = 1;
+    const perPage = 100;
+    
+    while (true) {
+        try {
+            const response = await fetch(
+                `https://api.github.com/repos/${owner}/${repo}/forks?page=${page}&per_page=${perPage}&sort=newest`
+            );
+            
+            if (!response.ok) {
+                throw new Error(`GitHub API 오류: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.length === 0) break;
+            
+            forks.push(...data);
+            
+            if (data.length < perPage) break;
+            
+            page++;
+            
+            // API 제한 대비 지연
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+        } catch (error) {
+            console.error(`페이지 ${page} 로드 실패:`, error);
+            break;
+        }
+    }
+    
+    return forks;
+}
+
+// record.md 파일 분석 (비동기 배치)
+async function analyzeRecordFiles(forks) {
+    let recordHolders = 0;
+    let weeklySuccessful = 0;
+    let totalStreak = 0;
+    let validRecords = 0;
+    
+    console.log('record.md 파일 분석 시작...');
+    
+    // 동시 요청 수 제한 (5개씩 배치 처리)
+    const batchSize = 5;
+    for (let i = 0; i < forks.length; i += batchSize) {
+        const batch = forks.slice(i, i + batchSize);
+        
+        const promises = batch.map(async (fork) => {
+            try {
+                const username = fork.owner.login;
+                const repoName = fork.name;
+                
+                // record.md 파일 조회
+                const response = await fetch(
+                    `https://api.github.com/repos/${username}/${repoName}/contents/record.md`
+                );
+                
+                if (response.ok) {
+                    recordHolders++;
+                    
+                    // 파일 내용 비동기 분석
+                    analyzeRecordContent(username, repoName)
+                        .then(stats => {
+                            if (stats) {
+                                if (stats.currentWeekSuccess) weeklySuccessful++;
+                                totalStreak += stats.currentStreak;
+                                validRecords++;
+                                
+                                // UI 업데이트
+                                updateStatisticsUI(recordHolders, weeklySuccessful, totalStreak, validRecords);
+                            }
+                        })
+                        .catch(err => console.error(`${username} record.md 분석 실패:`, err));
+                }
+                
+            } catch (error) {
+                console.error(`${fork.owner.login} 처리 실패:`, error);
+            }
+        });
+        
+        await Promise.allSettled(promises);
+        
+        // 배치 간 지연
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    
+    // 초기 업데이트
+    updateStatisticsUI(recordHolders, weeklySuccessful, totalStreak, validRecords);
+    
+    console.log(`분석 완료: ${recordHolders}개 record.md, ${weeklySuccessful}개 주간 성공`);
+}
+
+// record.md 내용 분석
+async function analyzeRecordContent(username, repoName) {
+    try {
+        const response = await fetch(
+            `https://api.github.com/repos/${username}/${repoName}/contents/record.md`
+        );
+        
+        if (!response.ok) return null;
+        
+        const data = await response.json();
+        const content = atob(data.content);
+        
+        // 기존 parseRecordMd 함수 사용
+        const records = parseRecordMd(content);
+        const stats = calculateStats(records);
+        
+        return stats;
+        
+    } catch (error) {
+        console.error(`${username}/record.md 분석 실패:`, error);
+        return null;
+    }
+}
+
+// 통계 UI 업데이트
+function updateStatisticsUI(recordHolders, weeklySuccessful, totalStreak, validRecords) {
+    document.getElementById('recordHolders').textContent = recordHolders;
+    document.getElementById('weeklySuccessful').textContent = weeklySuccessful;
+    
+    const averageStreak = validRecords > 0 ? Math.round(totalStreak / validRecords * 10) / 10 : 0;
+    document.getElementById('averageStreak').textContent = averageStreak + '주';
+}
+
+// 랭킹 데이터 저장를 위한 전역 변수
+let globalRankingData = [];
+
+// 랭킹 필터 버튼 설정
+function setupRankingFilters() {
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // 활성 버튼 변경
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            // 랭킹 다시 로드
+            const filter = button.getAttribute('data-filter');
+            displayRanking(filter);
+        });
+    });
+}
+
+// 랭킹 데이터 수집 및 표시
+async function collectAndDisplayRanking() {
+    try {
+        console.log('랭킹 데이터 수집 시작...');
+        
+        const forks = await getAllForks('tlqhrm', 'weekly-commit-challenge');
+        const rankingData = [];
+        
+        // 배치로 record.md 분석
+        const batchSize = 5;
+        for (let i = 0; i < forks.length; i += batchSize) {
+            const batch = forks.slice(i, i + batchSize);
+            
+            const promises = batch.map(async (fork) => {
+                try {
+                    const username = fork.owner.login;
+                    const repoName = fork.name;
+                    
+                    // record.md 조회
+                    const response = await fetch(
+                        `https://api.github.com/repos/${username}/${repoName}/contents/record.md`
+                    );
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const content = atob(data.content);
+                        const records = parseRecordMd(content);
+                        const stats = calculateStats(records);
+                        
+                        rankingData.push({
+                            username,
+                            avatarUrl: fork.owner.avatar_url,
+                            repoUrl: fork.html_url,
+                            lastPushed: fork.pushed_at,
+                            currentStreak: stats.currentStreak,
+                            totalWeeks: stats.totalWeeks,
+                            currentWeekSuccess: stats.currentWeekSuccess,
+                            records: records
+                        });
+                    }
+                } catch (error) {
+                    console.error(`${fork.owner.login} 랭킹 데이터 수집 실패:`, error);
+                }
+            });
+            
+            await Promise.allSettled(promises);
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        
+        globalRankingData = rankingData;
+        displayRanking('streak'); // 기본으로 연속 주차 순으로 정렬
+        
+        console.log(`랭킹 데이터 수집 완료: ${rankingData.length}명`);
+        
+    } catch (error) {
+        console.error('랭킹 데이터 수집 실패:', error);
+        document.getElementById('rankingList').innerHTML = '<div class="loading">랭킹을 불러올 수 없습니다.</div>';
+    }
+}
+
+// 랭킹 표시
+function displayRanking(filter) {
+    const rankingList = document.getElementById('rankingList');
+    
+    if (globalRankingData.length === 0) {
+        rankingList.innerHTML = '<div class="loading">랭킹 데이터를 수집하는 중...</div>';
+        // 데이터가 없으면 수집 시작
+        collectAndDisplayRanking();
+        return;
+    }
+    
+    // 필터에 따라 정렬
+    let sortedData = [...globalRankingData];
+    
+    switch (filter) {
+        case 'streak':
+            sortedData.sort((a, b) => b.currentStreak - a.currentStreak);
+            break;
+        case 'total':
+            sortedData.sort((a, b) => b.totalWeeks - a.totalWeeks);
+            break;
+        case 'recent':
+            sortedData.sort((a, b) => new Date(b.lastPushed) - new Date(a.lastPushed));
+            break;
+    }
+    
+    // 랭킹 HTML 생성
+    if (sortedData.length === 0) {
+        rankingList.innerHTML = '<div class="loading">아직 참여자가 없습니다.</div>';
+        return;
+    }
+    
+    rankingList.innerHTML = sortedData.map((user, index) => {
+        const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+        const badgeClass = user.currentWeekSuccess ? 'success' : 'progress';
+        const badgeText = user.currentWeekSuccess ? '성공' : '진행중';
+        
+        let mainStat = '';
+        switch (filter) {
+            case 'streak':
+                mainStat = `${user.currentStreak}주 연속`;
+                break;
+            case 'total':
+                mainStat = `총 ${user.totalWeeks}주`;
+                break;
+            case 'recent':
+                const lastPushDate = new Date(user.lastPushed);
+                const daysSince = Math.floor((new Date() - lastPushDate) / (1000 * 60 * 60 * 24));
+                mainStat = daysSince === 0 ? '오늘' : `${daysSince}일 전`;
+                break;
+        }
+        
+        return `
+            <div class="ranking-item">
+                <div class="rank-number ${rankClass}">${index + 1}</div>
+                <div class="user-info">
+                    <img src="${user.avatarUrl}" alt="${user.username}" class="user-avatar">
+                    <a href="https://github.com/${user.username}" target="_blank" class="user-name">${user.username}</a>
+                </div>
+                <div class="user-stats">
+                    <span class="badge ${badgeClass}">${badgeText}</span>
+                    <span class="main-stat">${mainStat}</span>
+                    <span class="sub-stat">연속 ${user.currentStreak}주</span>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
