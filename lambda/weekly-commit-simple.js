@@ -47,7 +47,7 @@ exports.handler = async (event) => {
         });
 
         // Verify it's from GitHub Actions
-        if (!decoded.repository || !decoded.repository.includes('weekly-commit-challange')) {
+        if (!decoded.repository || !decoded.repository.includes('weekly-commit-challenge')) {
             return {
                 statusCode: 403,
                 body: JSON.stringify({ error: 'Invalid repository' })

@@ -1,7 +1,7 @@
 # 🚀 Project Name
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-[![Weekly Commit Challenge](https://YOUR_USERNAME.github.io/weekly-commit-challange/api/badge.svg)](https://YOUR_USERNAME.github.io/weekly-commit-challange/)
+[![Weekly Commit Challenge](https://YOUR_USERNAME.github.io/weekly-commit-challenge/api/badge.svg)](https://YOUR_USERNAME.github.io/weekly-commit-challenge/)
 ![Version](https://img.shields.io/badge/version-1.0.0-green.svg)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
 
@@ -14,7 +14,7 @@ A brief description of what this project does and who it's for.
 이 프로젝트는 **Weekly Commit Challenge**와 함께 꾸준히 개발되고 있습니다.
 
 <div align="center">
-  <img src="https://YOUR_USERNAME.github.io/weekly-commit-challange/api/card-compact.svg" />
+  <img src="https://YOUR_USERNAME.github.io/weekly-commit-challenge/api/card-compact.svg" />
 </div>
 
 - 🎯 **목표**: 매주 최소 1회 커밋으로 프로젝트 지속 개발
@@ -25,7 +25,7 @@ A brief description of what this project does and who it's for.
 <details>
 <summary>📈 상세 개발 통계</summary>
 
-![Weekly Commit Stats](https://YOUR_USERNAME.github.io/weekly-commit-challange/api/card-stats.svg)
+![Weekly Commit Stats](https://YOUR_USERNAME.github.io/weekly-commit-challenge/api/card-stats.svg)
 
 </details>
 
@@ -89,8 +89,8 @@ This project is [MIT](https://choosealicense.com/licenses/mit/) licensed.
 ---
 
 ### 🔥 Weekly Commit Challenge
-이 프로젝트의 개발자는 [Weekly Commit Challenge](https://YOUR_USERNAME.github.io/weekly-commit-challange/)에 참여하여 꾸준한 개발을 실천하고 있습니다.
+이 프로젝트의 개발자는 [Weekly Commit Challenge](https://YOUR_USERNAME.github.io/weekly-commit-challenge/)에 참여하여 꾸준한 개발을 실천하고 있습니다.
 
-[![Weekly Commit Challenge](https://YOUR_USERNAME.github.io/weekly-commit-challange/api/badge.svg)](https://YOUR_USERNAME.github.io/weekly-commit-challange/)
+[![Weekly Commit Challenge](https://YOUR_USERNAME.github.io/weekly-commit-challenge/api/badge.svg)](https://YOUR_USERNAME.github.io/weekly-commit-challenge/)
 
 **도전해보세요!** 매주 최소 1회 커밋으로 개발 습관을 만들어보세요.

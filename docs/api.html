@@ -77,15 +77,15 @@
             <h1>📊 Weekly Commit Challenge API</h1>
             <p>GitHub Pages를 활용한 실시간 배지 및 데이터 API</p>
         </div>
-        
+
         <div class="content">
             <h2>🎯 API 엔드포인트</h2>
-            
+
             <div class="api-endpoint">
                 <h3>1. JSON 데이터 API</h3>
                 <p>사용자의 최신 주간 커밋 기록을 JSON 형태로 제공</p>
                 <div class="api-url" id="json-api-url">
-                    https://{username}.github.io/weekly-commit-challange/api/data.json
+                    https://{username}.github.io/weekly-commit-challenge/api/data.json
                 </div>
                 <button onclick="copyToClipboard('json-api-url')">📋 복사</button>
             </div>
@@ -94,10 +94,10 @@
                 <h3>2. 배지 이미지 API</h3>
                 <p>실시간 커밋 상태를 SVG 배지로 제공</p>
                 <div class="api-url" id="badge-api-url">
-                    https://{username}.github.io/weekly-commit-challange/api/badge.svg
+                    https://{username}.github.io/weekly-commit-challenge/api/badge.svg
                 </div>
                 <button onclick="copyToClipboard('badge-api-url')">📋 복사</button>
-                
+
                 <div class="badge-demo">
                     <h4>배지 예시:</h4>
                     <img id="demo-badge" src="data:image/svg+xml;base64," alt="Weekly Commit Badge">
@@ -108,26 +108,26 @@
                 <h3>3. 임베드 위젯 API</h3>
                 <p>다른 사이트에 임베드할 수 있는 HTML 위젯</p>
                 <div class="api-url" id="widget-api-url">
-                    https://{username}.github.io/weekly-commit-challange/api/widget.html
+                    https://{username}.github.io/weekly-commit-challenge/api/widget.html
                 </div>
                 <button onclick="copyToClipboard('widget-api-url')">📋 복사</button>
             </div>
 
             <h2>📖 사용 방법</h2>
-            
+
             <div class="usage-example">
                 <h3>README.md에 배지 추가:</h3>
-                <div class="code">![Weekly Commit Challenge](https://YOUR_USERNAME.github.io/weekly-commit-challange/api/badge.svg)</div>
+                <div class="code">![Weekly Commit Challenge](https://YOUR_USERNAME.github.io/weekly-commit-challenge/api/badge.svg)</div>
             </div>
 
             <div class="usage-example">
                 <h3>HTML에서 사용:</h3>
-                <div class="code">&lt;img src="https://YOUR_USERNAME.github.io/weekly-commit-challange/api/badge.svg" alt="Weekly Commit Badge"&gt;</div>
+                <div class="code">&lt;img src="https://YOUR_USERNAME.github.io/weekly-commit-challenge/api/badge.svg" alt="Weekly Commit Badge"&gt;</div>
             </div>
 
             <div class="usage-example">
                 <h3>JavaScript로 데이터 가져오기:</h3>
-                <div class="code">fetch('https://YOUR_USERNAME.github.io/weekly-commit-challange/api/data.json')
+                <div class="code">fetch('https://YOUR_USERNAME.github.io/weekly-commit-challenge/api/data.json')
   .then(response => response.json())
   .then(data => {
     console.log('주간 커밋:', data.commitCount);
@@ -157,12 +157,12 @@
                 // record.md에서 JSON 데이터 추출
                 const response = await fetch('../record.md');
                 const text = await response.text();
-                
+
                 // JSON 블록 추출
                 const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/);
                 if (jsonMatch) {
                     const data = JSON.parse(jsonMatch[1]);
-                    
+
                     // 현재 데이터 표시
                     document.getElementById('current-data').style.display = 'block';
                     document.getElementById('data-display').innerHTML = `
@@ -175,7 +175,7 @@
                             <p><strong>업데이트:</strong> ${new Date(data.lastUpdated).toLocaleString('ko-KR')}</p>
                         </div>
                     `;
-                    
+
                     // 배지 생성 및 표시
                     generateBadge(data);
                 }
@@ -189,7 +189,7 @@
             const status = data.success ? '성공' : '진행중';
             const color = data.success ? '#4c1' : '#fe7d37';
             const commitText = `${data.commitCount}개 커밋`;
-            
+
             const svg = `
                 <svg xmlns="http://www.w3.org/2000/svg" width="180" height="20">
                     <linearGradient id="b" x2="0" y2="100%">
@@ -212,7 +212,7 @@
                     </g>
                 </svg>
             `;
-            
+
             const base64 = btoa(unescape(encodeURIComponent(svg)));
             document.getElementById('demo-badge').src = `data:image/svg+xml;base64,${base64}`;
         }

@@ -123,7 +123,7 @@ COMMIT_COUNT=$(echo "$GRAPHQL_RESPONSE" | jq --arg excluded "$EXCLUDED_REPOS" '
           },
           {
             "repository": {
-              "name": "weekly-commit-challange",
+              "name": "weekly-commit-challenge",
               "owner": { "login": "john-doe" }
             },
             "contributions": { "totalCount": 10 }
@@ -146,8 +146,8 @@ COMMIT_COUNT=$(echo "$GRAPHQL_RESPONSE" | jq --arg excluded "$EXCLUDED_REPOS" '
 ```bash
 map(select(.repository.name as $repo_name | ($excluded | split(",") | index($repo_name) | not)))
 ```
-- `$excluded = "weekly-commit-challange"`
-- `split(",")` → `["weekly-commit-challange"]`
+- `$excluded = "weekly-commit-challenge"`
+- `split(",")` → `["weekly-commit-challenge"]`
 - `index($repo_name)` → 제외 목록에 있으면 인덱스 반환, 없으면 null
 - `| not` → null이면 true (포함), 인덱스가 있으면 false (제외)
 
@@ -155,7 +155,7 @@ map(select(.repository.name as $repo_name | ($excluded | split(",") | index($rep
 ```bash
 map(.contributions.totalCount)
 ```
-결과: `[15]` (weekly-commit-challange 제외됨)
+결과: `[15]` (weekly-commit-challenge 제외됨)
 
 #### 4. 총합 계산
 ```bash

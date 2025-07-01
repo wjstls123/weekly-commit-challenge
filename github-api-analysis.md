@@ -48,10 +48,10 @@ jq --arg since_date "$SINCE_DATE" --arg until_date "$UNTIL_DATE" --arg excluded 
 
 ### 4단계: 저장소 필터링
 ```bash
-# 제외 저장소: "weekly-commit-challange"
+# 제외 저장소: "weekly-commit-challenge"
 [
   {"repo": {"name": "user/my-project"}},           // ✅ 포함
-  {"repo": {"name": "user/weekly-commit-challange"}}, // ❌ 제외
+  {"repo": {"name": "user/weekly-commit-challenge"}}, // ❌ 제외
   {"repo": {"name": "user/another-repo"}}         // ✅ 포함
 ]
 ```

@@ -65,7 +65,7 @@ for repo in $(curl -s -H "Authorization: token $PERSONAL_GITHUB_TOKEN" \
   "https://api.github.com/user/repos?type=all&per_page=100" \
   | jq -r '.[].full_name'); do
   
-  if [[ "$repo" != *"weekly-commit-challange"* ]]; then
+  if [[ "$repo" != *"weekly-commit-challenge"* ]]; then
     echo "Checking $repo..."
     
     # 저장소별 커밋 확인

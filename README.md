@@ -14,7 +14,7 @@
 ### 1. 이 레포지토리 Fork 하기
 GitHub에서 이 레포지토리를 Fork하여 본인 계정으로 복사하세요.
 
-[![Fork Repository](https://img.shields.io/badge/Fork-Repository-brightgreen?style=for-the-badge&logo=github)](https://github.com/your-username/weekly-commit-challenge/fork)
+[![Fork Repository](https://img.shields.io/badge/Fork-Repository-brightgreen?style=for-the-badge&logo=github)](https://github.com/tlqhrm/weekly-commit-challenge/fork)
 
 ### 2. GitHub Actions 활성화
 Fork한 레포지토리의 Actions 탭에서 워크플로우를 활성화하세요.
@@ -23,133 +23,8 @@ Fork한 레포지토리의 Actions 탭에서 워크플로우를 활성화하세�
 ### 3. 일주일에 한 번 커밋하기!
 매주 월요일에 지난 일주일간의 커밋을 자동으로 체크합니다. 
 
-## 📊 실시간 랭킹 확인
-[챌린지 대시보드](https://your-username.github.io/weekly-commit-challenge/)에서 실시간 랭킹과 통계를 확인할 수 있습니다.
-
-## 🎨 다른 프로젝트에서 사용하기
-
-Weekly Commit Challenge 배지를 다른 프로젝트의 README나 개인 프로필에 임베드할 수 있습니다!
-
-### 📱 배지 & 카드 사용 예시
-
-#### 🏷️ 배지 스타일 (간단)
-```markdown
-![Weekly Commit Challenge](https://YOUR_USERNAME.github.io/weekly-commit-challange/api/badge.svg)
-```
-![Sample Badge](https://img.shields.io/badge/26주차-성공-4c1)
-
-#### 📊 카드 스타일 (github-readme-stats 같은 스타일)
-```markdown
-![Weekly Commit Card](https://YOUR_USERNAME.github.io/weekly-commit-challange/api/card.svg)
-```
-
-**예시:**
-
-<div align="center">
-  <img src="./docs/preview-cards.svg" alt="Default Card Preview" width="400">
-</div>
-
-#### 🎯 컴팩트 카드 (작은 공간용)
-```markdown
-![Weekly Commit Compact](https://YOUR_USERNAME.github.io/weekly-commit-challange/api/card-compact.svg)
-```
-
-**예시:**
-
-<div align="center">
-  <img src="./docs/preview-compact.svg" alt="Compact Card Preview" width="300">
-</div>
-
-#### 📈 통계 카드 (상세 정보)
-```markdown
-![Weekly Commit Stats](https://YOUR_USERNAME.github.io/weekly-commit-challange/api/card-stats.svg)
-```
-
-**예시:**
-
-<div align="center">
-  <img src="./docs/preview-stats.svg" alt="Stats Card Preview" width="450">
-</div>
-
-### 🔗 링크와 함께 사용
-```markdown
-[![Weekly Commit Challenge](https://YOUR_USERNAME.github.io/weekly-commit-challange/api/badge.svg)](https://YOUR_USERNAME.github.io/weekly-commit-challange/)
-```
-
-### 💡 사용 시나리오
-- **개인 GitHub 프로필**: 꾸준한 개발 습관을 어필
-- **프로젝트 README**: 지속적인 개발 상태를 보여줌  
-- **팀 대시보드**: 팀원들의 커밋 현황을 한눈에 확인
-- **이력서/포트폴리오**: 꾸준함을 증명하는 지표
-
-### 🌈 테마 옵션
-
-#### 🌙 다크 테마
-```markdown
-![Weekly Commit Dark](https://YOUR_USERNAME.github.io/weekly-commit-challange/api/card.svg?theme=dark)
-```
-
-**예시:**
-
-<div align="center">
-  <img src="./docs/preview-dark.svg" alt="Dark Theme Preview" width="400">
-</div>
-
-#### 🎨 사용 가능한 테마들
-```markdown
-<!-- 기본 밝은 테마 -->
-![Default](https://YOUR_USERNAME.github.io/weekly-commit-challange/api/card.svg?theme=default)
-
-<!-- 다크 테마 -->
-![Dark](https://YOUR_USERNAME.github.io/weekly-commit-challange/api/card.svg?theme=dark)
-
-<!-- 라디칼 테마 (핑크/청록) -->
-![Radical](https://YOUR_USERNAME.github.io/weekly-commit-challange/api/card.svg?theme=radical)
-
-<!-- 그럽박스 테마 (노란/베이지) -->
-![Gruvbox](https://YOUR_USERNAME.github.io/weekly-commit-challange/api/card.svg?theme=gruvbox)
-
-<!-- 도쿄나이트 테마 (보라/파랑) -->
-![Tokyo Night](https://YOUR_USERNAME.github.io/weekly-commit-challange/api/card.svg?theme=tokyonight)
-```
-
-### 📋 템플릿 제공
-- [개인 프로필 템플릿](./templates/personal-profile-template.md) - GitHub Stats와 조합
-- [프로젝트 README 템플릿](./templates/project-readme-template.md) - 컴팩트 카드 활용  
-- [팀 대시보드 템플릿](./templates/team-dashboard-template.md) - 팀원별 카드 표시
-
-### 🚀 실제 사용 예시
-
-#### GitHub 프로필에서의 활용
-```markdown
-<div align="center">
-  <img height="180em" src="https://github-readme-stats.vercel.app/api?username=username&theme=radical" />
-  <img height="180em" src="https://username.github.io/weekly-commit-challange/api/card.svg?theme=radical" />
-</div>
-```
-
-#### 프로젝트 README 헤더
-```markdown
-# 🚀 My Awesome Project
-
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Weekly Commit](https://username.github.io/weekly-commit-challange/api/card-compact.svg)
-
-프로젝트 설명...
-```
-
-#### 팀 대시보드
-```markdown
-| 멤버 | 주간 상태 |
-|------|-----------|
-| John | ![John's Card](https://john.github.io/weekly-commit-challange/api/card-compact.svg) |
-| Jane | ![Jane's Card](https://jane.github.io/weekly-commit-challange/api/card-compact.svg) |
-```
-
-### 📖 상세 가이드
-- [카드 사용법 가이드](./docs/card-usage-examples.md) - github-readme-stats 스타일 활용법
-- [임베드 가이드](./docs/embed-examples.md) - 기본 사용법
-- [빠른 시작 가이드](./docs/quick-start.md) - 5분만에 시작하기
+## 📊 실시간 대시보드 확인
+[챌린지 대시보드](https://tlqhrm.github.io/weekly-commit-challenge/)에서 실시간 챌린지 현황을 확인할 수 있습니다.
 
 ## 🏆 챌린지 규칙
 

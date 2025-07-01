@@ -6,10 +6,10 @@
 
 | 팀원 | 주간 커밋 상태 | 상세 정보 |
 |------|---------------|-----------|
-| **John Doe** | ![John's Status](https://john-doe.github.io/weekly-commit-challange/api/card-compact.svg) | Frontend Lead |
-| **Jane Smith** | ![Jane's Status](https://jane-smith.github.io/weekly-commit-challange/api/card-compact.svg) | Backend Developer |
-| **Alex Kim** | ![Alex's Status](https://alex-kim.github.io/weekly-commit-challange/api/card-compact.svg) | Full Stack Developer |
-| **Sarah Wilson** | ![Sarah's Status](https://sarah-wilson.github.io/weekly-commit-challange/api/card-compact.svg) | DevOps Engineer |
+| **John Doe** | ![John's Status](https://john-doe.github.io/weekly-commit-challenge/api/card-compact.svg) | Frontend Lead |
+| **Jane Smith** | ![Jane's Status](https://jane-smith.github.io/weekly-commit-challenge/api/card-compact.svg) | Backend Developer |
+| **Alex Kim** | ![Alex's Status](https://alex-kim.github.io/weekly-commit-challenge/api/card-compact.svg) | Full Stack Developer |
+| **Sarah Wilson** | ![Sarah's Status](https://sarah-wilson.github.io/weekly-commit-challenge/api/card-compact.svg) | DevOps Engineer |
 
 ## 📈 Team Statistics
 

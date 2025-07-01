@@ -31,7 +31,7 @@ jobs:
           echo "Current time (KST): $NOW"
           echo "Checking commits for user: $USERNAME"
           
-          EXCLUDED_REPOS="weekly-commit-challange"
+          EXCLUDED_REPOS="weekly-commit-challenge"
           
           if [ "$CURRENT_WEEKDAY" -eq 1 ]; then
             WEEK_START=$(TZ='Asia/Seoul' date -d '7 days ago' '+%Y-%m-%d')

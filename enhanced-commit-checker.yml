@@ -6,7 +6,7 @@
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           USERNAME="${{ github.repository_owner }}"
-          EXCLUDED_REPOS="weekly-commit-challange"
+          EXCLUDED_REPOS="weekly-commit-challenge"
           
           # 주차 계산 (기존과 동일)
           CURRENT_WEEKDAY=$(TZ='Asia/Seoul' date '+%u')

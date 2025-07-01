@@ -11,17 +11,17 @@
 
 <div align="center">
   <img height="180em" src="https://github-readme-stats.vercel.app/api?username=YOUR_USERNAME&show_icons=true&theme=radical" />
-  <img height="180em" src="https://YOUR_USERNAME.github.io/weekly-commit-challange/api/card.svg?theme=radical" />
+  <img height="180em" src="https://YOUR_USERNAME.github.io/weekly-commit-challenge/api/card.svg?theme=radical" />
 </div>
 
 <div align="center">
-  <img src="https://YOUR_USERNAME.github.io/weekly-commit-challange/api/card-stats.svg?theme=radical" />
+  <img src="https://YOUR_USERNAME.github.io/weekly-commit-challenge/api/card-stats.svg?theme=radical" />
 </div>
 
 🎯 **목표**: 매주 최소 1회 커밋하기  
 📈 **현재 상태**: 꾸준히 도전 중!
 
-[🔗 전체 기록 보기](https://YOUR_USERNAME.github.io/weekly-commit-challange/)
+[🔗 전체 기록 보기](https://YOUR_USERNAME.github.io/weekly-commit-challenge/)
 
 ## 💻 Tech Stack
 
