@@ -3,7 +3,7 @@
 ## 📊 JSON Data
 
 ```json
-{"period":"06/30 ~ 07/06","year":2025,"weekNumber":26,"commitCount":0,"success":false,"status":"🔄 진행중 (0개)","lastUpdated":"2025-07-01T20:59:23+09:00"}
+{"period":"06/30 ~ 07/06","year":2025,"weekNumber":26,"commitCount":0,"success":false,"status":"🔄 진행중 (0개)","lastUpdated":"2025-07-01T21:13:42+09:00"}
 ```
 
 ## 📊 기록 테이블
