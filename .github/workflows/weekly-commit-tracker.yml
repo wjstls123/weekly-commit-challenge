@@ -63,30 +63,30 @@ jobs:
           # GitHub GraphQL API로 정확한 커밋 수 가져오기
           echo "🔍 GraphQL API로 커밋 수 확인 중..."
           
-          GRAPHQL_QUERY=$(cat <<EOF
-          {
-            "query": "query(\$username: String!, \$from: DateTime!, \$to: DateTime!) {
-              user(login: \$username) {
-                contributionsCollection(from: \$from, to: \$to) {
-                  totalCommitContributions
-                  commitContributionsByRepository {
-                    repository {
-                      name
-                      owner { login }
-                    }
-                    contributions {
-                      totalCount
-                    }
-                  }
-                }
-              }
-            }",
-            "variables": {
-              "username": "$USERNAME",
-              "from": "$SINCE_DATE",
-              "to": "$UNTIL_DATE"
-            }
+          GRAPHQL_QUERY=$(cat <<'EOF'
+{
+  "query": "query($username: String!, $from: DateTime!, $to: DateTime!) {
+    user(login: $username) {
+      contributionsCollection(from: $from, to: $to) {
+        totalCommitContributions
+        commitContributionsByRepository {
+          repository {
+            name
+            owner { login }
           }
+          contributions {
+            totalCount
+          }
+        }
+      }
+    }
+  }",
+  "variables": {
+    "username": "'"$USERNAME"'",
+    "from": "'"$SINCE_DATE"'",
+    "to": "'"$UNTIL_DATE"'"
+  }
+}
 EOF
           )
           
@@ -239,29 +239,16 @@ EOF
           RECORD_JSON="{\"period\":\"$WEEK_PERIOD\",\"year\":$YEAR,\"weekNumber\":$WEEK_NUM,\"commitCount\":$COMMIT_COUNT,\"success\":$SUCCESS,\"status\":\"$STATUS_EMOJI\",\"lastUpdated\":\"$(TZ='Asia/Seoul' date -Iseconds)\"}"
           
           # record.md 업데이트 (JSON과 마크다운 테이블 병행)
-          if [ -f record.md ]; then
-            # 기존 JSON 섹션 찾기
-            if grep -q "## 📊 JSON Data" record.md; then
-              # JSON 데이터 업데이트
-              sed -i "/## 📊 JSON Data/,/^## /{ /^## 📊 JSON Data/! { /^## /! d; } }" record.md
-              sed -i "/## 📊 JSON Data/a\\\\n\`\`\`json\\n$RECORD_JSON\\n\`\`\`\\n" record.md
-            else
-              # JSON 섹션 추가
-              echo -e "\\n## 📊 JSON Data\\n\\n\`\`\`json\\n$RECORD_JSON\\n\`\`\`\\n" >> record.md
-            fi
-          else
-            # record.md 새로 생성
-            {
-              echo "# ${{ github.repository_owner }} - Weekly Commit Challenge Record"
-              echo ""
-              echo "## 📊 JSON Data"
-              echo ""
-              echo "\`\`\`json"
-              echo "$RECORD_JSON"
-              echo "\`\`\`"
-              echo ""
-            } > record.md
-          fi
+          cat > record.md << EOL
+# ${{ github.repository_owner }} - Weekly Commit Challenge Record
+
+## 📊 JSON Data
+
+\`\`\`json
+$RECORD_JSON
+\`\`\`
+
+EOL
           
           # 테이블 형태 기록도 record.md에 추가
           NEW_RECORD="| $WEEK_PERIOD | ${YEAR}년 ${WEEK_NUM}주차 | $COMMIT_COUNT | $STATUS_EMOJI |"
