@@ -46,11 +46,17 @@ jobs:
           
           echo "Week start: $WEEK_START, Week end: $WEEK_END"
           
-          SINCE_DATE=$(TZ='Asia/Seoul' date -d "$WEEK_START 00:00:00" -Iseconds)
-          UNTIL_DATE=$(TZ='Asia/Seoul' date -d "$WEEK_END 23:59:59" -Iseconds)
+          # 한국 시간을 UTC로 변환 (KST - 9시간)
+          SINCE_DATE_UTC=$(TZ='UTC' date -d "$WEEK_START 00:00:00 KST" -Iseconds)
+          UNTIL_DATE_UTC=$(TZ='UTC' date -d "$WEEK_END 23:59:59 KST" -Iseconds)
           
-          # GraphQL 쿼리 생성
-          echo '{"query":"query($username: String!, $from: DateTime!, $to: DateTime!) { user(login: $username) { contributionsCollection(from: $from, to: $to) { totalCommitContributions commitContributionsByRepository { repository { name owner { login } } contributions { totalCount } } } } }","variables":{"username":"'$USERNAME'","from":"'$SINCE_DATE'","to":"'$UNTIL_DATE'"}}' > /tmp/query.json
+          echo "KST Week start: $WEEK_START 00:00:00"
+          echo "KST Week end: $WEEK_END 23:59:59"
+          echo "UTC Since date: $SINCE_DATE_UTC"
+          echo "UTC Until date: $UNTIL_DATE_UTC"
+          
+          # GraphQL 쿼리 생성 (유저 정보와 커밋 정보 함께 조회)
+          echo '{"query":"query($username: String!, $from: DateTime!, $to: DateTime!) { user(login: $username) { avatarUrl contributionsCollection(from: $from, to: $to) { totalCommitContributions commitContributionsByRepository { repository { name owner { login } } contributions { totalCount } } } } }","variables":{"username":"'$USERNAME'","from":"'$SINCE_DATE_UTC'","to":"'$UNTIL_DATE_UTC'"}}' > /tmp/query.json
           
           # GraphQL API 호출
           GRAPHQL_RESPONSE=$(curl -s -X POST \
@@ -60,6 +66,9 @@ jobs:
             "https://api.github.com/graphql")
           
           echo "GraphQL Response: $GRAPHQL_RESPONSE"
+          
+          # 유저 아바타 URL 추출
+          AVATAR_URL=$(echo "$GRAPHQL_RESPONSE" | jq -r '.data.user.avatarUrl // ""')
           
           # 커밋 수 계산
           COMMIT_COUNT=$(echo "$GRAPHQL_RESPONSE" | jq --arg excluded "$EXCLUDED_REPOS" '
@@ -74,11 +83,13 @@ jobs:
           fi
           
           echo "Commit count: $COMMIT_COUNT"
+          echo "Avatar URL: $AVATAR_URL"
           
           echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
           echo "period_start=$WEEK_START" >> $GITHUB_OUTPUT
           echo "period_end=$WEEK_END" >> $GITHUB_OUTPUT
           echo "period_type=$PERIOD_TYPE" >> $GITHUB_OUTPUT
+          echo "avatar_url=$AVATAR_URL" >> $GITHUB_OUTPUT
           
           if [ $COMMIT_COUNT -gt 0 ]; then
             echo "success=true" >> $GITHUB_OUTPUT
@@ -91,17 +102,21 @@ jobs:
         run: |
           YEAR=$(TZ='Asia/Seoul' date '+%Y')
           WEEK_NUMBER=$(node -e "
+            // 한국 시간 기준으로 주차 계산
             const now = new Date();
-            const target = new Date(now.valueOf());
-            const dayNr = (target.getDay() + 6) % 7;
-            target.setDate(target.getDate() - dayNr + 3);
-            const jan4 = new Date(target.getFullYear(), 0, 4);
+            const kstOffset = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
+            const kstNow = new Date(now.getTime() + kstOffset);
+            
+            const target = new Date(kstNow.valueOf());
+            const dayNr = (target.getDay() + 6) % 7; // 월요일을 0으로
+            target.setDate(target.getDate() - dayNr + 3); // 목요일로 이동
+            const jan4 = new Date(target.getFullYear(), 0, 4); // 1월 4일
             const dayDiff = (target - jan4) / 86400000;
             console.log(Math.ceil(dayDiff / 7));
           ")
           
           echo "week_number=$WEEK_NUMBER" >> $GITHUB_OUTPUT
-          echo "Year: $YEAR, Week: $WEEK_NUMBER"
+          echo "Year: $YEAR, Week: $WEEK_NUMBER (KST 기준)"
 
       - name: Update record.md
         run: |
@@ -126,8 +141,11 @@ jobs:
             STATUS_EMOJI="🔄 진행중 ($COMMIT_COUNT개)"
           fi
           
+          # 아바타 URL 가져오기
+          AVATAR_URL="${{ steps.check_commits.outputs.avatar_url }}"
+          
           # JSON 데이터 생성
-          echo '{"period":"'$WEEK_PERIOD'","year":'$YEAR',"weekNumber":'$WEEK_NUM',"commitCount":'$COMMIT_COUNT',"success":'$SUCCESS',"status":"'$STATUS_EMOJI'","lastUpdated":"'$(TZ='Asia/Seoul' date -Iseconds)'"}' > /tmp/record.json
+          echo '{"period":"'$WEEK_PERIOD'","year":'$YEAR',"weekNumber":'$WEEK_NUM',"commitCount":'$COMMIT_COUNT',"success":'$SUCCESS',"status":"'$STATUS_EMOJI'","lastUpdated":"'$(TZ='Asia/Seoul' date -Iseconds)'","username":"${{ github.repository_owner }}","avatarUrl":"'$AVATAR_URL'"}' > /tmp/record.json
           RECORD_JSON=$(cat /tmp/record.json)
           
           # record.md 생성
