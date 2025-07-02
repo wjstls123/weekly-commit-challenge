@@ -324,8 +324,8 @@ jobs:
             # record.json에 전체 기록 포함
             {
               echo '{'
-              echo '  "username": "${{ github.repository_owner }}",'
-              echo '  "avatarUrl": "'$AVATAR_URL'",'
+              echo '  "username": "'"${{ github.repository_owner }}"'",'
+              echo '  "avatarUrl": "'"$AVATAR_URL"'",'
               echo '  "lastUpdated": "'$(TZ='Asia/Seoul' date -Iseconds)'",'
               echo '  "records": ['
               
@@ -366,11 +366,11 @@ jobs:
                       success="true"
                     fi
                     echo '    {'
-                    echo '      "period": "'$period'",'
-                    echo '      "week": "'$week'",'
-                    echo '      "commits": '$commits','
-                    echo '      "success": '$success','
-                    echo '      "status": "'$status'"'
+                    echo '      "period": "'"$period"'",'
+                    echo '      "week": "'"$week"'",'
+                    echo '      "commits": '"$commits"','
+                    echo '      "success": '"$success"','
+                    echo '      "status": "'"$status"'"'
                     echo -n '    }'
                     first_record=false
                   fi
@@ -380,20 +380,20 @@ jobs:
               
               # 지난주 기록 추가
               echo '    {'
-              echo '      "period": "'$WEEK_PERIOD'",'
-              echo '      "week": "'${YEAR}년 ${WEEK_NUM}주차'",'
-              echo '      "commits": '$COMMIT_COUNT','
-              echo '      "success": '$SUCCESS','
-              echo '      "status": "'$STATUS_EMOJI'"'
+              echo '      "period": "'"$WEEK_PERIOD"'",'
+              echo '      "week": "'"${YEAR}년 ${WEEK_NUM}주차"'",'
+              echo '      "commits": '"$COMMIT_COUNT"','
+              echo '      "success": '"$SUCCESS"','
+              echo '      "status": "'"$STATUS_EMOJI"'"'
               echo '    },'
               
               # 이번주 기록 추가
               echo '    {'
-              echo '      "period": "'$THIS_WEEK_PERIOD'",'
-              echo '      "week": "'${YEAR}년 ${THIS_WEEK_NUM}주차'",'
-              echo '      "commits": '$TODAY_COMMIT_COUNT','
-              echo '      "success": '$TODAY_SUCCESS','
-              echo '      "status": "'$TODAY_STATUS_EMOJI'"'
+              echo '      "period": "'"$THIS_WEEK_PERIOD"'",'
+              echo '      "week": "'"${YEAR}년 ${THIS_WEEK_NUM}주차"'",'
+              echo '      "commits": '"$TODAY_COMMIT_COUNT"','
+              echo '      "success": '"$TODAY_SUCCESS"','
+              echo '      "status": "'"$TODAY_STATUS_EMOJI"'"'
               echo '    }'
               echo '  ]'
               echo '}'
@@ -462,8 +462,8 @@ jobs:
             # 화~일요일: 이번주 기록 추가 (중복은 나중에 정리)
             {
               echo '{'
-              echo '  "username": "${{ github.repository_owner }}",'
-              echo '  "avatarUrl": "'$AVATAR_URL'",'
+              echo '  "username": "'"${{ github.repository_owner }}"'",'
+              echo '  "avatarUrl": "'"$AVATAR_URL"'",'
               echo '  "lastUpdated": "'$(TZ='Asia/Seoul' date -Iseconds)'",'
               echo '  "records": ['
               
@@ -503,11 +503,11 @@ jobs:
                       success="true"
                     fi
                     echo '    {'
-                    echo '      "period": "'$period'",'
-                    echo '      "week": "'$week'",'
-                    echo '      "commits": '$commits','
-                    echo '      "success": '$success','
-                    echo '      "status": "'$status'"'
+                    echo '      "period": "'"$period"'",'
+                    echo '      "week": "'"$week"'",'
+                    echo '      "commits": '"$commits"','
+                    echo '      "success": '"$success"','
+                    echo '      "status": "'"$status"'"'
                     echo -n '    }'
                     first_record=false
                   fi
@@ -517,11 +517,11 @@ jobs:
               
               # 현재 기록 추가 (항상 마지막에)
               echo '    {'
-              echo '      "period": "'$WEEK_PERIOD'",'
-              echo '      "week": "'${YEAR}년 ${WEEK_NUM}주차'",'
-              echo '      "commits": '$COMMIT_COUNT','
-              echo '      "success": '$SUCCESS','
-              echo '      "status": "'$STATUS_EMOJI'"'
+              echo '      "period": "'"$WEEK_PERIOD"'",'
+              echo '      "week": "'"${YEAR}년 ${WEEK_NUM}주차"'",'
+              echo '      "commits": '"$COMMIT_COUNT"','
+              echo '      "success": '"$SUCCESS"','
+              echo '      "status": "'"$STATUS_EMOJI"'"'
               echo '    }'
               echo '  ]'
               echo '}'
