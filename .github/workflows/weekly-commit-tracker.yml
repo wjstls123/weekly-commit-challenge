@@ -373,8 +373,31 @@ jobs:
           echo "기간: $PERIOD (${YEAR}년 ${WEEK_NUMBER}주차)"
           echo "커밋: $COMMIT_COUNT개 ($STATUS)"
           
+          # ID 미리 계산
+          if [ "$SHOULD_ADD" = "true" ]; then
+            # 새 기록 추가 모드 - 마지막 ID + 1
+            if [ -f record.json ]; then
+              RECORD_ID=$(cat record.json | jq '.records | length + 1')
+            else
+              RECORD_ID=1
+            fi
+          else
+            # 기존 기록 업데이트 모드 - 기존 ID 유지 (없으면 1)
+            if [ -f record.json ]; then
+              RECORD_ID=$(cat record.json | jq --arg weekStart "$WEEK_START" '.records[] | select(.weekStart == $weekStart) | .id // 1' | head -1)
+              if [ -z "$RECORD_ID" ] || [ "$RECORD_ID" = "null" ]; then
+                RECORD_ID=1
+              fi
+            else
+              RECORD_ID=1
+            fi
+          fi
+          
+          echo "🆔 할당된 ID: $RECORD_ID"
+          
           # 새 기록 데이터 (완전한 구조)
           NEW_RECORD=$(jq -n \
+            --argjson id "$RECORD_ID" \
             --arg period "$PERIOD" \
             --arg week "${YEAR}년 ${WEEK_NUMBER}주차" \
             --argjson commits "$COMMIT_COUNT" \
@@ -383,7 +406,7 @@ jobs:
             --arg weekStart "$WEEK_START" \
             --arg weekEnd "$WEEK_END" \
             '{
-              "id": null,
+              "id": $id,
               "period": $period,
               "week": $week,
               "commits": $commits,
@@ -404,10 +427,6 @@ jobs:
               EXISTING_RECORDS="[]"
             fi
             
-            # ID 할당 (마지막 ID + 1)
-            NEXT_ID=$(echo "$EXISTING_RECORDS" | jq 'length + 1')
-            NEW_RECORD=$(echo "$NEW_RECORD" | jq ".id = $NEXT_ID")
-            
             # 새 기록을 기존 기록에 추가
             UPDATED_RECORDS=$(echo "$EXISTING_RECORDS" | jq ". + [$NEW_RECORD]")
             
@@ -418,7 +437,7 @@ jobs:
             EXISTING_RECORDS=$(cat record.json | jq '.records')
             UPDATED_RECORDS=$(echo "$EXISTING_RECORDS" | jq --arg weekStart "$WEEK_START" --argjson newRecord "$NEW_RECORD" '
               map(if .weekStart == $weekStart then 
-                ($newRecord | .id = .id)
+                $newRecord
               else 
                 . 
               end)
