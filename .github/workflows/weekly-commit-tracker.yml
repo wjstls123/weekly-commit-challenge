@@ -353,7 +353,17 @@ jobs:
         run: |
           USERNAME="${{ github.repository_owner }}"
           
-          echo "🔄 Fork 사용자 ($USERNAME) 감지 - 통계 워크플로우 제거"
+          echo "🔄 Fork 사용자 ($USERNAME) 감지"
+          
+          # Fork 사용자의 기존 record.json 확인 및 초기화
+          if [ -f record.json ]; then
+            EXISTING_USERNAME=$(cat record.json | jq -r '.username // empty')
+            if [ "$EXISTING_USERNAME" != "$USERNAME" ] && [ -n "$EXISTING_USERNAME" ]; then
+              echo "⚠️ 다른 사용자($EXISTING_USERNAME)의 기록 발견 - 초기화 진행"
+              rm -f record.json record.md
+              echo "✅ 기존 기록 초기화 완료"
+            fi
+          fi
           
           # Fork 사용자의 statistics 워크플로우 제거
           if [ -f .github/workflows/collect-statistics.yml ]; then
@@ -370,9 +380,10 @@ jobs:
           # 변경된 파일 추가
           git add record.json record.md
           
-          # Fork 사용자의 경우 삭제된 워크플로우도 추가
+          # Fork 사용자의 경우 삭제된 파일들도 추가
           if [ "${{ github.repository_owner }}" != "tlqhrm" ]; then
             git add .github/workflows/ || true
+            git add record.json record.md || true
           fi
           
           # 변경사항이 있는지 확인
