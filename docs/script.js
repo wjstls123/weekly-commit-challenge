@@ -930,6 +930,15 @@ async function fetchUserData(username) {
             const recordData = recordJsonResponse; // raw 파일이므로 바로 사용
             console.log('record.json 파싱 성공:', recordData);
 
+            // JSON의 username과 검색한 username이 다른지 확인
+            if (recordData.username && recordData.username !== username) {
+                console.log(`JSON username(${recordData.username})과 검색 username(${username})이 다름`);
+                // userExists가 true인 경우만 (즉, 유저는 존재하지만 워크플로우가 실행되지 않은 경우)
+                if (userExists) {
+                    throw new Error('아직 워크플로우가 실행되지 않았습니다.<br><small style="color: #8b949e; margin-top: 10px; display: block;">잠시 기다리거나 Actions 탭에서 수동으로 실행해주세요.</small>');
+                }
+            }
+
             // 전체 기록에서 통계 계산
             const records = recordData.records || [];
             const stats = calculateStatsFromRecords(records);
@@ -953,6 +962,10 @@ async function fetchUserData(username) {
             return data;
         } catch (parseError) {
             console.log('record.json 파싱 실패:', parseError.message);
+            // 워크플로우 실행 안내 에러는 그대로 전달
+            if (parseError.message.includes('워크플로우가 실행되지 않았습니다')) {
+                throw parseError;
+            }
         }
     } else {
         console.log('record.json 응답 없음');
