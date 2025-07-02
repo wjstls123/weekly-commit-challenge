@@ -915,15 +915,23 @@ function closeRankingDetail(rankIndex) {
 
 // 사용자 데이터 불러오기 (searchProfile에서 분리)
 async function fetchUserData(username) {
-    // 기본 사용자 정보 먼저 가져오기
-    let userData = null;
-    try {
-        const userResponse = await fetch(`https://api.github.com/users/${username}`);
-        if (userResponse.ok) {
-            userData = await userResponse.json();
+    // 기본 사용자 정보 캐시 확인
+    const userInfoCacheKey = `user_info_${username}`;
+    let userData = getCachedData(userInfoCacheKey, 5 * 60 * 1000); // 5분
+    
+    if (!userData) {
+        try {
+            const userResponse = await fetch(`https://api.github.com/users/${username}`);
+            if (userResponse.ok) {
+                userData = await userResponse.json();
+                // 사용자 정보 캐시에 저장
+                setCachedData(userInfoCacheKey, userData);
+            }
+        } catch (userError) {
+            console.log('사용자 정보 조회 실패:', userError);
         }
-    } catch (userError) {
-        console.log('사용자 정보 조회 실패:', userError);
+    } else {
+        console.log('캐시에서 사용자 정보 로드:', username);
     }
 
     const defaultAvatarUrl = userData?.avatar_url || `https://github.com/${username}.png`;

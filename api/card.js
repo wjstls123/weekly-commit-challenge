@@ -6,9 +6,17 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Fetch user data from GitHub API
-    const userResponse = await fetch(`https://api.github.com/users/${username}`);
+    // Try to get user data from cache first
     let userData = null;
+    
+    // For serverless functions, we can't use localStorage but can implement in-memory cache
+    // For now, we'll rely on HTTP cache headers
+    const userResponse = await fetch(`https://api.github.com/users/${username}`, {
+      headers: {
+        'Cache-Control': 'max-age=300' // 5분 캐시 요청
+      }
+    });
+    
     if (userResponse.ok) {
       userData = await userResponse.json();
     }
