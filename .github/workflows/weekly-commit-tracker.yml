@@ -145,18 +145,11 @@ jobs:
           AVATAR_URL="${{ steps.check_commits.outputs.avatar_url }}"
           
           # JSON 데이터 생성
-          echo '{"period":"'$WEEK_PERIOD'","year":'$YEAR',"weekNumber":'$WEEK_NUM',"commitCount":'$COMMIT_COUNT',"success":'$SUCCESS',"status":"'$STATUS_EMOJI'","lastUpdated":"'$(TZ='Asia/Seoul' date -Iseconds)'","username":"${{ github.repository_owner }}","avatarUrl":"'$AVATAR_URL'"}' > /tmp/record.json
-          RECORD_JSON=$(cat /tmp/record.json)
+          echo '{"period":"'$WEEK_PERIOD'","year":'$YEAR',"weekNumber":'$WEEK_NUM',"commitCount":'$COMMIT_COUNT',"success":'$SUCCESS',"status":"'$STATUS_EMOJI'","lastUpdated":"'$(TZ='Asia/Seoul' date -Iseconds)'","username":"${{ github.repository_owner }}","avatarUrl":"'$AVATAR_URL'"}' > record.json
           
-          # record.md 생성
+          # record.md 생성 (JSON 부분 제거)
           {
             echo "# ${{ github.repository_owner }} - Weekly Commit Challenge Record"
-            echo ""
-            echo "## 📊 JSON Data"
-            echo ""
-            echo '```json'
-            echo "$RECORD_JSON"
-            echo '```'
             echo ""
             echo "## 📊 기록 테이블"
             echo ""
@@ -169,13 +162,13 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add record.md
+          git add record.md record.json
           
           if ! git diff --staged --quiet; then
             CURRENT_TIME=$(TZ='Asia/Seoul' date '+%m/%d %H:%M')
             git commit -m "📊 ${{ steps.week_number.outputs.week_number }}주차 위클리 커밋 챌린지 기록 업데이트 ($CURRENT_TIME)"
             git push
-            echo "✅ record.md 업데이트 완료"
+            echo "✅ record.md, record.json 업데이트 완료"
           else
             echo "ℹ️ 변경사항이 없어 커밋하지 않습니다."
           fi
