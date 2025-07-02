@@ -41,25 +41,18 @@ Fork한 레포지토리의 Actions 탭에서 워크플로우를 활성화하세�
 
 본인의 GitHub 프로필 README에 다음 코드를 추가하여 챌린지 현황을 표시할 수 있습니다:
 
-### 방법 1: 동적 카드 (실시간 업데이트) ⭐ 추천
-실시간으로 업데이트되는 인터랙티브 카드를 임베드할 수 있습니다:
+### 방법 1: 동적 배지 (GitHub README용) ⭐ 추천
+클릭하면 실시간 카드를 볼 수 있는 배지를 README에 추가할 수 있습니다:
 
-#### HTML (웹사이트/블로그용)
-```html
-<iframe src="https://tlqhrm.github.io/weekly-commit-challenge/card-proxy.html?username=YOUR_USERNAME" 
-        width="400" height="130" frameborder="0"></iframe>
-```
-
-#### Markdown (GitHub README용)
 ```markdown
 [![Weekly Commit Challenge](https://img.shields.io/badge/Weekly%20Commit%20Challenge-Click%20to%20View-blue)](https://tlqhrm.github.io/weekly-commit-challenge/card-proxy.html?username=YOUR_USERNAME)
 ```
 
 **특징:**
+- 🖱️ 클릭 시 실시간 카드 페이지로 이동
 - ⚡ 실시간 데이터 업데이트 
 - 🎨 성과에 따른 색상 변화
-- 🔄 자동 동기화 (GitHub Actions 기다릴 필요 없음)
-- 🖱️ 클릭 시 대시보드로 이동
+- 📱 GitHub README에서 완벽 지원
 
 ### 방법 2: 정적 카드 (매시간 업데이트)
 ```markdown

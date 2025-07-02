@@ -182,31 +182,21 @@ function showProfileUI(data) {
             </div>
             <div class="card-import-section">
                 <p style="font-size: 13px; color: #586069; margin: 0 0 10px 0;">
-                    <strong>카드 임베드 코드:</strong>
+                    <strong>README에 배지 추가하기:</strong>
                 </p>
                 
-                <div style="margin-bottom: 15px;">
-                    <label style="font-size: 12px; color: #586069; display: block; margin-bottom: 5px;">HTML (웹사이트/블로그용):</label>
-                    <div class="import-url">
-                        <input type="text" readonly 
-                               value='<iframe src="https://tlqhrm.github.io/weekly-commit-challenge/card-proxy.html?username=${data.username}" width="400" height="130" frameborder="0"></iframe>'
-                               id="htmlCode-${data.username}">
-                        <button onclick="copyToClipboard('htmlCode-${data.username}')">복사</button>
-                    </div>
-                </div>
-                
                 <div>
-                    <label style="font-size: 12px; color: #586069; display: block; margin-bottom: 5px;">Markdown (GitHub README용):</label>
+                    <label style="font-size: 12px; color: #586069; display: block; margin-bottom: 5px;">Markdown 코드 (클릭하면 실시간 카드 페이지로 이동):</label>
                     <div class="import-url">
                         <input type="text" readonly 
                                value='[![Weekly Commit Challenge](https://img.shields.io/badge/Weekly%20Commit%20Challenge-Click%20to%20View-blue)](https://tlqhrm.github.io/weekly-commit-challenge/card-proxy.html?username=${data.username})'
-                               id="markdownCode-${data.username}">
-                        <button onclick="copyToClipboard('markdownCode-${data.username}')">복사</button>
+                               id="badgeCode-${data.username}">
+                        <button onclick="copyToClipboard('badgeCode-${data.username}')">복사</button>
                     </div>
                 </div>
                 
                 <p style="font-size: 11px; color: #8b949e; margin: 10px 0 0 0;">
-                    ⚡ 실시간 업데이트 | 🎨 성과별 색상 변화 | 🖱️ 클릭 시 대시보드 이동
+                    🖱️ 클릭 시 실시간 카드 보기 | ⚡ 실시간 업데이트 | 📱 GitHub README 완벽 지원
                 </p>
             </div>
         </div>
@@ -895,6 +885,7 @@ async function fetchUserData(username) {
     
     if (!userData) {
         try {
+            // GitHub 사용자 정보는 API를 사용해야 함 (raw로는 불가능)
             const userResponse = await fetch(`https://api.github.com/users/${username}`);
             if (userResponse.ok) {
                 userData = await userResponse.json();
@@ -925,10 +916,10 @@ async function fetchUserData(username) {
     if (!recordJsonResponse) {
         // record.json에서 전체 데이터 가져오기
         try {
-            const jsonResponse = await fetch(`https://api.github.com/repos/${username}/weekly-commit-challenge/contents/record.json`);
+            const jsonResponse = await fetch(`https://raw.githubusercontent.com/${username}/weekly-commit-challenge/master/record.json`);
             if (jsonResponse.ok) {
                 recordJsonResponse = await jsonResponse.json();
-                // API 응답 캐시에 저장
+                // 캐시에 저장
                 setCachedData(recordJsonCacheKey, recordJsonResponse);
             }
         } catch (jsonError) {
@@ -941,8 +932,7 @@ async function fetchUserData(username) {
     if (recordJsonResponse) {
         console.log('record.json 응답 처리 시작');
         try {
-            const jsonContent = atob(recordJsonResponse.content);
-            const recordData = JSON.parse(jsonContent);
+            const recordData = recordJsonResponse; // raw 파일이므로 바로 사용
             console.log('record.json 파싱 성공:', recordData);
             
             // 전체 기록에서 통계 계산
@@ -1039,10 +1029,10 @@ async function fetchUserData(username) {
     if (!recordMdResponse) {
         // record.md 파일 시도
         try {
-            const response = await fetch(`https://api.github.com/repos/${username}/weekly-commit-challenge/contents/record.md`);
+            const response = await fetch(`https://raw.githubusercontent.com/${username}/weekly-commit-challenge/master/record.md`);
             if (response.ok) {
-                recordMdResponse = await response.json();
-                // API 응답 캐시에 저장
+                recordMdResponse = await response.text();
+                // 캐시에 저장
                 setCachedData(recordMdCacheKey, recordMdResponse);
             }
         } catch (mdError) {
@@ -1054,8 +1044,7 @@ async function fetchUserData(username) {
 
     if (recordMdResponse) {
         try {
-            const content = atob(recordMdResponse.content);
-            const records = parseRecordMd(content);
+            const records = parseRecordMd(recordMdResponse); // raw 파일이므로 바로 사용
             const stats = calculateStats(records);
 
             const data = {

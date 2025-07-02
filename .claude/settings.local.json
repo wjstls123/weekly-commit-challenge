@@ -17,7 +17,8 @@
       "Bash(yamllint:*)",
       "Bash(gh workflow run:*)",
       "Bash(grep:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }
