@@ -160,7 +160,7 @@ function showProfileUI(data) {
                     ${data.currentWeekSuccess ? '✅ 이번 주 성공' : `🔄 진행중 (${data.currentWeekCommits}개)`}
                 </p>
                 <a href="https://github.com/${data.username}" target="_blank" class="github-button">
-                    GitHub 프로필
+                    GitHub
                 </a>
             </div>
         </div>
@@ -800,7 +800,7 @@ async function toggleRankingDetail(username, rankIndex) {
                                 ${statusText}
                             </p>
                             <a href="https://github.com/${data.username}" target="_blank" class="github-button">
-                                GitHub 프로필
+                                GitHub
                             </a>
                         </div>
                         <button class="close-detail" onclick="closeRankingDetail(${rankIndex})">×</button>

@@ -48,12 +48,24 @@ Fork한 레포지토리의 Actions 탭에서 워크플로우를 활성화하세�
 ![Weekly Commit Challenge](https://weekly-commit-challenge.vercel.app/api/card?username=YOUR_USERNAME&theme=github_dark)
 ```
 
+### 카드 예시
+
+![Weekly Commit Challenge](https://weekly-commit-challenge.vercel.app/api/card?username=tlqhrm)
+
 카드에는 다음 정보가 표시됩니다:
 - 현재 연속 주차
 - 최장 연속 주차  
 - 총 참여 주차
 - 성공률
 - 현재 진행 상태
+
+### 다른 테마 예시
+
+**라이트 테마:**
+![Weekly Commit Challenge Light](https://weekly-commit-challenge.vercel.app/api/card?username=tlqhrm&theme=light)
+
+**GitHub 다크 테마:**
+![Weekly Commit Challenge GitHub Dark](https://weekly-commit-challenge.vercel.app/api/card?username=tlqhrm&theme=github_dark)
 
 
 ## 🏆 챌린지 규칙
