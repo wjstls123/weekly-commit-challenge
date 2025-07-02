@@ -115,30 +115,3 @@ GitHub README에 다음 코드를 추가하면 **실시간으로 업데이트되
 ```
 
 ![Weekly Commit Challenge](https://weekly-commit-card.wjstls123.workers.dev/?username=tlqhrm)
-
-## 💡 팁
-
-- **꾸준함이 핵심**: 매일 큰 커밋보다 주 1회 작은 커밋이 더 중요
-- **습관 만들기**: 특정 요일을 정해서 꾸준히 커밋하기
-- **모바일 지원**: 대시보드는 모바일에서도 완벽하게 작동
-
-## 🔧 기술 스택
-
-- **자동화**: GitHub Actions (매시간 정각 실행)
-- **데이터 저장**: JSON + Markdown
-- **실시간 카드**: Cloudflare Workers
-- **프론트엔드**: Vanilla JS + CSS
-- **배포**: GitHub Pages
-
-## 🤝 기여하기
-
-버그 리포트나 기능 제안은 Issues에 남겨주세요.  
-Pull Request도 언제나 환영합니다!
-
-## 📄 라이선스
-
-이 프로젝트는 MIT 라이선스 하에 공개되어 있습니다.
-
----
-
-**🔥 지금 시작해보세요!** Fork하고 Actions만 활성화하면 끝!

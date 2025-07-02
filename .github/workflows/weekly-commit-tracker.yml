@@ -5,6 +5,11 @@ on:
     - cron: '0 * * * *'   # 매시간 정각 실행
   workflow_dispatch:
 
+# 동시 실행 방지
+concurrency:
+  group: weekly-commit-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   track-commits:
     runs-on: ubuntu-latest
@@ -632,26 +637,48 @@ jobs:
               git commit -m "📊 ${{ steps.week_number.outputs.week_number }}주차 위클리 커밋 챌린지 기록 업데이트 ($CURRENT_TIME)"
             fi
             
-            # Push 시도 (충돌 시 자동 해결)
+            # Push 시도 (재시도 로직 포함)
             echo "🔄 변경사항을 원격 저장소에 푸시 중..."
-            if ! git push; then
-              echo "⚠️ Push 실패 - 원격 변경사항과 충돌이 발생했습니다."
-              echo "🔄 원격 변경사항을 가져와서 자동 병합을 시도합니다..."
+            
+            # 3번까지 재시도
+            PUSH_SUCCESS=false
+            for i in {1..3}; do
+              echo "📤 Push 시도 $i/3..."
               
-              # 원격 변경사항 가져오기
-              git fetch origin master
-              
-              # rebase를 시도하여 충돌 해결
-              if git rebase origin/master; then
-                echo "✅ 자동 rebase 성공"
-                git push
-                echo "✅ 기록 파일 업데이트 완료"
+              if git push; then
+                echo "✅ Push 성공!"
+                PUSH_SUCCESS=true
+                break
               else
-                echo "⚠️ Rebase 실패 - 강제 푸시를 시도합니다..."
-                git rebase --abort
-                git push --force-with-lease
-                echo "✅ 강제 푸시로 기록 파일 업데이트 완료"
+                echo "⚠️ Push 실패 ($i/3) - 원격 변경사항과 충돌이 발생했습니다."
+                
+                if [ $i -lt 3 ]; then
+                  echo "🔄 원격 변경사항을 가져와서 자동 병합을 시도합니다..."
+                  
+                  # 원격 변경사항 가져오기
+                  git fetch origin master
+                  
+                  # rebase를 시도하여 충돌 해결
+                  if git rebase origin/master; then
+                    echo "✅ 자동 rebase 성공 - 다시 push를 시도합니다..."
+                    continue
+                  else
+                    echo "⚠️ Rebase 실패 - rebase를 중단하고 다시 시도합니다..."
+                    git rebase --abort
+                    
+                    # 5초 대기 후 재시도
+                    echo "⏳ 5초 대기 후 재시도..."
+                    sleep 5
+                  fi
+                fi
               fi
+            done
+            
+            # 모든 시도가 실패한 경우 강제 푸시
+            if [ "$PUSH_SUCCESS" = false ]; then
+              echo "⚠️ 모든 push 시도 실패 - 강제 푸시를 시도합니다..."
+              git push --force-with-lease
+              echo "✅ 강제 푸시로 기록 파일 업데이트 완료"
             else
               echo "✅ 기록 파일 업데이트 완료"
             fi

@@ -2409,3 +2409,51 @@ footer {
     color: #8b949e;
     line-height: 1.5;
 }
+
+/* 토스트 메시지 */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #238636;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    transform: translateX(400px);
+    transition: all 0.3s ease;
+}
+
+.toast.show {
+    transform: translateX(0);
+}
+
+.toast.success {
+    background: #238636;
+    border-left: 4px solid #2ea043;
+}
+
+.toast.info {
+    background: #1f6feb;
+    border-left: 4px solid #58a6ff;
+}
+
+.toast-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.toast-message {
+    flex: 1;
+}
+
+.toast.hide {
+    transform: translateX(400px);
+    opacity: 0;
+}

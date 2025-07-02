@@ -190,7 +190,7 @@ function showProfileUI(data) {
                         <input type="text" readonly 
                                value='![Weekly Commit Challenge](https://weekly-commit-card.wjstls123.workers.dev/?username=${data.username})'
                                id="cloudflareCode-${data.username}">
-                        <button onclick="copyToClipboard('cloudflareCode-${data.username}')">복사</button>
+                        <button onclick="copyEmbeddingCodeForUser('${data.username}')">복사</button>
                     </div>
                 </div>
                 

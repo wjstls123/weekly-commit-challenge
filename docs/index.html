@@ -235,7 +235,7 @@
                     <p>GitHub 프로필 README에 실시간으로 업데이트되는 카드를 추가해보세요</p>
                     <div class="import-url">
                         <input type="text" readonly value="![Weekly Commit Challenge](https://weekly-commit-card.wjstls123.workers.dev/?username=YOUR_USERNAME)" id="embedding-example">
-                        <button onclick="copyToClipboard('embedding-example')">복사</button>
+                        <button onclick="copyEmbeddingCode()">복사</button>
                     </div>
                     <p class="step-example">YOUR_USERNAME을 본인의 GitHub 사용자명으로 변경하세요</p>
                 </div>
@@ -305,20 +305,78 @@
     </div>
 
     <script>
+        function showToast(message, type = 'success', duration = 3000) {
+            // 기존 토스트 제거
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            // 토스트 생성
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? '✅' : type === 'info' ? 'ℹ️' : '📋';
+            
+            toast.innerHTML = `
+                <span class="toast-icon">${icon}</span>
+                <span class="toast-message">${message}</span>
+            `;
+
+            document.body.appendChild(toast);
+
+            // 애니메이션으로 표시
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+
+            // 자동으로 숨기기
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, 300);
+            }, duration);
+        }
+
         function copyToClipboard(elementId) {
             const inputElement = document.getElementById(elementId);
             if (inputElement) {
                 const text = inputElement.value;
                 navigator.clipboard.writeText(text).then(() => {
-                    alert('코드가 복사되었습니다! YOUR_USERNAME을 본인의 GitHub 사용자명으로 바꿔주세요.');
+                    showToast('코드가 복사되었습니다! YOUR_USERNAME을 본인의 GitHub 사용자명으로 바꿔주세요.', 'success');
                 });
             } else {
                 // 기본 텍스트 (호환성용)
                 const text = "![Weekly Commit Challenge](https://weekly-commit-card.wjstls123.workers.dev/?username=YOUR_USERNAME)";
                 navigator.clipboard.writeText(text).then(() => {
-                    alert('코드가 복사되었습니다! YOUR_USERNAME을 본인의 GitHub 사용자명으로 바꿔주세요.');
+                    showToast('코드가 복사되었습니다! YOUR_USERNAME을 본인의 GitHub 사용자명으로 바꿔주세요.', 'success');
                 });
             }
+        }
+
+        function copyEmbeddingCode() {
+            // 클릭 시 대시보드로 이동하는 HTML 코드 생성
+            const htmlCode = `<a href="https://weekly-commit-challenge.wjstls123.workers.dev/">
+  <img src="https://weekly-commit-card.wjstls123.workers.dev/?username=YOUR_USERNAME" alt="Weekly Commit Challenge" />
+</a>`;
+            
+            navigator.clipboard.writeText(htmlCode).then(() => {
+                showToast('코드가 복사되었습니다! YOUR_USERNAME을 본인의 GitHub 사용자명으로 바꿔주세요.', 'success');
+            });
+        }
+
+        function copyEmbeddingCodeForUser(username) {
+            // 특정 사용자의 클릭 가능한 HTML 코드 생성
+            const htmlCode = `<a href="https://weekly-commit-challenge.wjstls123.workers.dev/">
+  <img src="https://weekly-commit-card.wjstls123.workers.dev/?username=${username}" alt="Weekly Commit Challenge" />
+</a>`;
+            
+            navigator.clipboard.writeText(htmlCode).then(() => {
+                showToast('코드가 복사되었습니다!', 'success');
+            });
         }
 
         function openImageModal(imageSrc, caption) {
