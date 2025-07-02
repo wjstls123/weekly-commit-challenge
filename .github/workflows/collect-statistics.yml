@@ -102,12 +102,6 @@ jobs:
                   stats.totalParticipants = allForks.length;
                   console.log(`총 ${allForks.length}개의 fork 발견`);
                   
-                  // 활성 참여자 계산
-                  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-                  stats.activeParticipants = allForks.filter(fork => 
-                      new Date(fork.pushed_at) > thirtyDaysAgo
-                  ).length;
-                  
                   // 각 fork의 record.md 확인 (배치 처리)
                   for (let i = 0; i < allForks.length; i += 5) {
                       const batch = allForks.slice(i, i + 5);
@@ -120,13 +114,12 @@ jobs:
                               );
                               
                               if (recordResponse) {
-                                  stats.recordHolders++;
-                                  
                                   // record.md 내용 분석
                                   const content = Buffer.from(recordResponse.content, 'base64').toString();
                                   const lines = content.split('\\n');
                                   let currentStreak = 0;
                                   let totalWeeks = 0;
+                                  let successWeeks = 0;
                                   let currentWeekSuccess = false;
                                   
                                   // 간단한 파싱
@@ -134,6 +127,7 @@ jobs:
                                       if (line.includes('|') && !line.includes('---') && !line.includes('기간')) {
                                           totalWeeks++;
                                           if (line.includes('✅')) {
+                                              successWeeks++;
                                               if (totalWeeks === 1) currentWeekSuccess = true;
                                               if (currentStreak === totalWeeks - 1) currentStreak++;
                                           }
@@ -142,12 +136,16 @@ jobs:
                                   
                                   if (currentWeekSuccess) stats.weeklySuccessful++;
                                   
+                                  // 성공률 계산
+                                  const successRate = totalWeeks > 0 ? Math.round((successWeeks / totalWeeks) * 100 * 10) / 10 : 0;
+                                  
                                   stats.participants.push({
                                       username: fork.owner.login,
                                       avatarUrl: fork.owner.avatar_url,
                                       lastPushed: fork.pushed_at,
                                       currentStreak,
                                       totalWeeks,
+                                      successRate,
                                       currentWeekSuccess
                                   });
                               }
@@ -160,10 +158,13 @@ jobs:
                       await new Promise(resolve => setTimeout(resolve, 500));
                   }
                   
-                  // 평균 연속 주차 계산
+                  // 평균 연속 주차 및 성공률 계산
                   if (stats.participants.length > 0) {
                       const totalStreak = stats.participants.reduce((sum, p) => sum + p.currentStreak, 0);
+                      const totalSuccessRate = stats.participants.reduce((sum, p) => sum + p.successRate, 0);
+                      
                       stats.averageStreak = Math.round(totalStreak / stats.participants.length * 10) / 10;
+                      stats.averageSuccessRate = Math.round(totalSuccessRate / stats.participants.length * 10) / 10;
                   }
                   
                   // Issue에 저장하기 위해 GitHub API 호출
@@ -182,9 +183,8 @@ jobs:
                     '```json\\n' + jsonData + '\\n```\\n\\n' +
                     '## 요약\\n' +
                     '- 총 참여자: ' + stats.totalParticipants + '명\\n' +
-                    '- 활성 참여자: ' + stats.activeParticipants + '명\\n' +
-                    '- record.md 보유자: ' + stats.recordHolders + '명\\n' +
                     '- 주간 성공자: ' + stats.weeklySuccessful + '명\\n' +
+                    '- 평균 성공률: ' + stats.averageSuccessRate + '%\\n' +
                     '- 평균 연속 주차: ' + stats.averageStreak + '주';
                   
                   if (issues.length > 0) {

@@ -390,9 +390,8 @@ async function loadForkStatistics() {
     try {
         // 기본 통계 초기화
         document.getElementById('totalParticipants').textContent = '-';
-        document.getElementById('activeParticipants').textContent = '-';
-        document.getElementById('recordHolders').textContent = '-';
         document.getElementById('weeklySuccessful').textContent = '-';
+        document.getElementById('averageSuccessRate').textContent = '-';
         document.getElementById('averageStreak').textContent = '-';
         
         console.log('Fork 통계 로드 시작...');
@@ -432,16 +431,7 @@ async function loadForkStatistics() {
         console.log(`총 ${forks.length}개의 fork 발견`);
         
         // 기본 통계
-        const now = new Date();
-        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        
-        const activeForks = forks.filter(fork => {
-            const lastPush = new Date(fork.pushed_at);
-            return lastPush > thirtyDaysAgo;
-        });
-        
         document.getElementById('totalParticipants').textContent = forks.length;
-        document.getElementById('activeParticipants').textContent = activeForks.length;
         
         // record.md 분석 (배치로 실행)
         analyzeRecordFiles(forks);
@@ -454,9 +444,8 @@ async function loadForkStatistics() {
     } catch (error) {
         console.error('Fork 통계 로드 실패:', error);
         document.getElementById('totalParticipants').textContent = '0';
-        document.getElementById('activeParticipants').textContent = '0';
-        document.getElementById('recordHolders').textContent = '0';
         document.getElementById('weeklySuccessful').textContent = '0';
+        document.getElementById('averageSuccessRate').textContent = '0%';
         document.getElementById('averageStreak').textContent = '0';
     }
 }
@@ -501,9 +490,9 @@ async function getAllForks(owner, repo) {
 
 // record.md 파일 분석 (비동기 배치)
 async function analyzeRecordFiles(forks) {
-    let recordHolders = 0;
     let weeklySuccessful = 0;
     let totalStreak = 0;
+    let totalSuccessRate = 0;
     let validRecords = 0;
     
     console.log('record.md 파일 분석 시작...');
@@ -524,18 +513,24 @@ async function analyzeRecordFiles(forks) {
                 );
                 
                 if (response.ok) {
-                    recordHolders++;
-                    
                     // 파일 내용 비동기 분석
                     analyzeRecordContent(username, repoName)
                         .then(stats => {
                             if (stats) {
                                 if (stats.currentWeekSuccess) weeklySuccessful++;
                                 totalStreak += stats.currentStreak;
+                                
+                                // 성공률 계산 (성공 주차 / 전체 주차)
+                                if (stats.totalWeeks > 0) {
+                                    const successCount = stats.records.filter(r => r.success).length;
+                                    const successRate = (successCount / stats.totalWeeks) * 100;
+                                    totalSuccessRate += successRate;
+                                }
+                                
                                 validRecords++;
                                 
                                 // UI 업데이트
-                                updateStatisticsUI(recordHolders, weeklySuccessful, totalStreak, validRecords);
+                                updateStatisticsUI(weeklySuccessful, totalStreak, totalSuccessRate, validRecords);
                             }
                         })
                         .catch(err => console.error(`${username} record.md 분석 실패:`, err));
@@ -553,9 +548,9 @@ async function analyzeRecordFiles(forks) {
     }
     
     // 초기 업데이트
-    updateStatisticsUI(recordHolders, weeklySuccessful, totalStreak, validRecords);
+    updateStatisticsUI(weeklySuccessful, totalStreak, totalSuccessRate, validRecords);
     
-    console.log(`분석 완료: ${recordHolders}개 record.md, ${weeklySuccessful}개 주간 성공`);
+    console.log(`분석 완료: ${validRecords}개 record.md, ${weeklySuccessful}개 주간 성공`);
 }
 
 // record.md 내용 분석
@@ -583,20 +578,21 @@ async function analyzeRecordContent(username, repoName) {
 }
 
 // 통계 UI 업데이트
-function updateStatisticsUI(recordHolders, weeklySuccessful, totalStreak, validRecords) {
-    document.getElementById('recordHolders').textContent = recordHolders;
+function updateStatisticsUI(weeklySuccessful, totalStreak, totalSuccessRate, validRecords) {
     document.getElementById('weeklySuccessful').textContent = weeklySuccessful;
     
     const averageStreak = validRecords > 0 ? Math.round(totalStreak / validRecords * 10) / 10 : 0;
+    const averageSuccessRate = validRecords > 0 ? Math.round(totalSuccessRate / validRecords * 10) / 10 : 0;
+    
     document.getElementById('averageStreak').textContent = averageStreak + '주';
+    document.getElementById('averageSuccessRate').textContent = averageSuccessRate + '%';
 }
 
 // 캐시된 통계 표시
 function displayCachedStatistics(stats) {
     document.getElementById('totalParticipants').textContent = stats.totalParticipants || 0;
-    document.getElementById('activeParticipants').textContent = stats.activeParticipants || 0;
-    document.getElementById('recordHolders').textContent = stats.recordHolders || 0;
     document.getElementById('weeklySuccessful').textContent = stats.weeklySuccessful || 0;
+    document.getElementById('averageSuccessRate').textContent = (stats.averageSuccessRate || 0) + '%';
     document.getElementById('averageStreak').textContent = (stats.averageStreak || 0) + '주';
     
     // 랭킹 데이터도 사용
@@ -659,6 +655,10 @@ async function collectAndDisplayRanking() {
                         const records = parseRecordMd(content);
                         const stats = calculateStats(records);
                         
+                        // 성공률 계산
+                        const successCount = records.filter(r => r.success).length;
+                        const successRate = stats.totalWeeks > 0 ? Math.round((successCount / stats.totalWeeks) * 100 * 10) / 10 : 0;
+                        
                         rankingData.push({
                             username,
                             avatarUrl: fork.owner.avatar_url,
@@ -666,6 +666,7 @@ async function collectAndDisplayRanking() {
                             lastPushed: fork.pushed_at,
                             currentStreak: stats.currentStreak,
                             totalWeeks: stats.totalWeeks,
+                            successRate: successRate,
                             currentWeekSuccess: stats.currentWeekSuccess,
                             records: records
                         });
@@ -708,11 +709,8 @@ function displayRanking(filter) {
         case 'streak':
             sortedData.sort((a, b) => b.currentStreak - a.currentStreak);
             break;
-        case 'total':
-            sortedData.sort((a, b) => b.totalWeeks - a.totalWeeks);
-            break;
-        case 'recent':
-            sortedData.sort((a, b) => new Date(b.lastPushed) - new Date(a.lastPushed));
+        case 'success-rate':
+            sortedData.sort((a, b) => b.successRate - a.successRate);
             break;
     }
     
@@ -732,13 +730,8 @@ function displayRanking(filter) {
             case 'streak':
                 mainStat = `${user.currentStreak}주 연속`;
                 break;
-            case 'total':
-                mainStat = `총 ${user.totalWeeks}주`;
-                break;
-            case 'recent':
-                const lastPushDate = new Date(user.lastPushed);
-                const daysSince = Math.floor((new Date() - lastPushDate) / (1000 * 60 * 60 * 24));
-                mainStat = daysSince === 0 ? '오늘' : `${daysSince}일 전`;
+            case 'success-rate':
+                mainStat = `${user.successRate}% 성공률`;
                 break;
         }
         
@@ -752,7 +745,7 @@ function displayRanking(filter) {
                 <div class="user-stats">
                     <span class="badge ${badgeClass}">${badgeText}</span>
                     <span class="main-stat">${mainStat}</span>
-                    <span class="sub-stat">연속 ${user.currentStreak}주</span>
+                    <span class="sub-stat">${filter === 'streak' ? `성공률 ${user.successRate}%` : `연속 ${user.currentStreak}주`}</span>
                 </div>
             </div>
         `;
