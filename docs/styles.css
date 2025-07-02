@@ -1821,6 +1821,24 @@ footer {
     color: #58a6ff;
 }
 
+/* GitHub 링크 스타일 */
+.github-link {
+    display: inline-block;
+    color: #8b949e;
+    text-decoration: none;
+    font-size: 0.9em;
+    margin-top: 8px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.github-link:hover {
+    color: #58a6ff;
+    background: rgba(88, 166, 255, 0.1);
+    text-decoration: none;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
