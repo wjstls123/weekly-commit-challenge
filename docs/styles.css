@@ -33,7 +33,7 @@ h1 .emoji {
 }
 
 h1 .title-text {
-    background: linear-gradient(90deg, #58a6ff, #79c0ff);
+    background: linear-gradient(90deg, #2ea043, #3fb950);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -52,13 +52,13 @@ h1 .title-text {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: linear-gradient(135deg, #1f6feb, #388bfd);
+    background: linear-gradient(135deg, #238636, #2ea043);
     color: white;
     padding: 12px 24px;
     border-radius: 25px;
     font-weight: 600;
     font-size: 1.1em;
-    box-shadow: 0 4px 12px rgba(31, 111, 235, 0.3);
+    box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
     animation: pulse 2s infinite;
     transition: all 0.3s ease;
 }
@@ -89,11 +89,11 @@ h1 .title-text {
 @keyframes pulse {
     0%, 100% {
         transform: scale(1);
-        box-shadow: 0 4px 12px rgba(31, 111, 235, 0.3);
+        box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
     }
     50% {
         transform: scale(1.05);
-        box-shadow: 0 6px 20px rgba(31, 111, 235, 0.4);
+        box-shadow: 0 6px 20px rgba(35, 134, 54, 0.4);
     }
 }
 
@@ -139,7 +139,7 @@ h1 .title-text {
 
 .stat-card:hover {
     transform: translateY(-5px);
-    border-color: #58a6ff;
+    border-color: #2ea043;
 }
 
 .stat-card h3 {
@@ -151,7 +151,7 @@ h1 .title-text {
 .stat-number {
     font-size: 2.5em;
     font-weight: bold;
-    color: #58a6ff;
+    color: #2ea043;
 }
 
 .ranking {
@@ -188,8 +188,8 @@ h1 .title-text {
 }
 
 .filter-btn.active {
-    background: #1f6feb;
-    border-color: #1f6feb;
+    background: #238636;
+    border-color: #238636;
 }
 
 .ranking-list {
@@ -209,7 +209,7 @@ h1 .title-text {
 }
 
 .ranking-item:hover {
-    border-color: #58a6ff;
+    border-color: #2ea043;
     background: #161b22;
 }
 
@@ -239,7 +239,7 @@ h1 .title-text {
 
 .user-name {
     font-weight: bold;
-    color: #58a6ff;
+    color: #2ea043;
     text-decoration: none;
 }
 
@@ -254,7 +254,7 @@ h1 .title-text {
 }
 
 .badge {
-    background: #1f6feb;
+    background: #238636;
     color: white;
     padding: 4px 12px;
     border-radius: 16px;
@@ -295,7 +295,7 @@ h1 .title-text {
 }
 
 .step-vertical:hover {
-    border-color: #58a6ff;
+    border-color: #2ea043;
     transform: translateX(5px);
 }
 
@@ -307,7 +307,7 @@ h1 .title-text {
 }
 
 .step-number {
-    background: #1f6feb;
+    background: #238636;
     color: white;
     width: 35px;
     height: 35px;
@@ -408,7 +408,7 @@ h1 .title-text {
 }
 
 .record-info h4 {
-    color: #58a6ff;
+    color: #2ea043;
     margin-bottom: 15px;
     font-size: 1.1em;
 }
@@ -431,7 +431,7 @@ h1 .title-text {
 
 .example-table th {
     background: #21262d;
-    color: #58a6ff;
+    color: #2ea043;
     font-weight: 600;
     font-size: 0.9em;
 }
@@ -552,7 +552,7 @@ input:checked + .toggle-slider:before {
 }
 
 .download-btn {
-    background: #1f6feb;
+    background: #238636;
 }
 
 .copy-btn:hover {
@@ -560,11 +560,11 @@ input:checked + .toggle-slider:before {
 }
 
 .download-btn:hover {
-    background: #1158c7;
+    background: #2ea043;
 }
 
 .copy-btn.copied {
-    background: #1f6feb;
+    background: #2ea043;
 }
 
 .workflow-preview {
@@ -581,7 +581,7 @@ input:checked + .toggle-slider:before {
 
 .workflow-info p {
     margin: 0 0 10px 0;
-    color: #58a6ff;
+    color: #2ea043;
 }
 
 .workflow-info ol {
@@ -597,10 +597,10 @@ input:checked + .toggle-slider:before {
 .workflow-note {
     margin-top: 15px;
     padding: 10px;
-    background: #1f6feb20;
-    border-left: 3px solid #1f6feb;
+    background: #2ea04320;
+    border-left: 3px solid #2ea043;
     border-radius: 4px;
-    color: #58a6ff;
+    color: #2ea043;
     font-size: 0.9em;
 }
 
@@ -653,7 +653,7 @@ input:checked + .toggle-slider:before {
 .fork-info h3 {
     margin-bottom: 25px;
     font-size: 1.4em;
-    color: #58a6ff;
+    color: #2ea043;
 }
 
 .fork-benefits {
@@ -675,7 +675,7 @@ input:checked + .toggle-slider:before {
 }
 
 .benefit-item:hover {
-    border-color: #58a6ff;
+    border-color: #2ea043;
     transform: translateY(-2px);
 }
 
@@ -686,7 +686,7 @@ input:checked + .toggle-slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #1f6feb20;
+    background: #2ea04320;
     border-radius: 50%;
     flex-shrink: 0;
 }
@@ -711,7 +711,7 @@ input:checked + .toggle-slider:before {
 
 .repo-info p {
     margin: 0 0 15px 0;
-    color: #58a6ff;
+    color: #2ea043;
 }
 
 .repo-info ul {
@@ -899,7 +899,7 @@ footer {
 /* 개인정보 안내 스타일 */
 .privacy-info {
     background: #0f1419;
-    border: 2px solid #1f6feb;
+    border: 2px solid #238636;
     border-radius: 10px;
     padding: 25px;
     margin-top: 20px;
@@ -907,7 +907,7 @@ footer {
 
 .privacy-info h4 {
     margin: 0 0 20px 0;
-    color: #58a6ff;
+    color: #2ea043;
     font-size: 1.2em;
     text-align: center;
 }
@@ -974,7 +974,7 @@ footer {
 
 .workflow-terms h3 {
     margin: 0 0 25px 0;
-    color: #58a6ff;
+    color: #2ea043;
     font-size: 1.3em;
     text-align: center;
     border-bottom: 2px solid #30363d;
@@ -987,7 +987,7 @@ footer {
     font-size: 1.1em;
     font-weight: 600;
     padding-left: 10px;
-    border-left: 3px solid #58a6ff;
+    border-left: 3px solid #2ea043;
 }
 
 .terms-content h4:first-child {
@@ -1013,7 +1013,7 @@ footer {
     content: "•";
     position: absolute;
     left: 0;
-    color: #58a6ff;
+    color: #2ea043;
     font-weight: bold;
 }
 
@@ -1087,7 +1087,7 @@ footer {
 
 #profileInput:focus {
     outline: none;
-    border-color: #58a6ff;
+    border-color: #2ea043;
 }
 
 .search-btn, .clear-btn {
@@ -1145,7 +1145,7 @@ footer {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    border: 3px solid #58a6ff;
+    border: 3px solid #2ea043;
 }
 
 .profile-info h3 {
@@ -1201,7 +1201,7 @@ footer {
     display: block;
     font-size: 1.5em;
     font-weight: 700;
-    color: #58a6ff;
+    color: #2ea043;
 }
 
 .profile-recent h4 {
@@ -1311,14 +1311,14 @@ footer {
 
 .sample-tab:hover {
     background: #30363d;
-    border-color: #58a6ff;
+    border-color: #2ea043;
 }
 
 .sample-tab.active {
-    background: linear-gradient(135deg, #1f6feb, #388bfd);
-    border-color: #1f6feb;
+    background: linear-gradient(135deg, #238636, #2ea043);
+    border-color: #238636;
     color: white;
-    box-shadow: 0 2px 8px rgba(31, 111, 235, 0.3);
+    box-shadow: 0 2px 8px rgba(35, 134, 54, 0.3);
 }
 
 .sample-content {
@@ -1353,14 +1353,14 @@ footer {
 
 .sample-note {
     margin: 0;
-    color: #58a6ff;
+    color: #2ea043;
     font-size: 0.9em;
     font-weight: 600;
     text-align: center;
     padding: 10px;
-    background: #1f6feb20;
+    background: #2ea04320;
     border-radius: 6px;
-    border-left: 3px solid #58a6ff;
+    border-left: 3px solid #2ea043;
 }
 
 /* 카드 기능 섹션 스타일 */
@@ -1395,7 +1395,7 @@ footer {
 
 .card-usage h3 {
     margin: 0 0 20px 0;
-    color: #58a6ff;
+    color: #2ea043;
     text-align: center;
 }
 
@@ -1418,7 +1418,7 @@ footer {
 }
 
 .usage-step:hover {
-    border-color: #58a6ff;
+    border-color: #2ea043;
     transform: translateX(5px);
 }
 
@@ -1429,7 +1429,7 @@ footer {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #1f6feb20;
+    background: #2ea04320;
     border-radius: 50%;
     flex-shrink: 0;
 }
@@ -1455,7 +1455,7 @@ footer {
 
 .card-info h4 {
     margin: 0 0 10px 0;
-    color: #58a6ff;
+    color: #2ea043;
 }
 
 .card-info p {
@@ -1478,7 +1478,7 @@ footer {
 
 .card-info li::before {
     content: "• ";
-    color: #58a6ff;
+    color: #2ea043;
     font-weight: bold;
 }
 
@@ -1543,12 +1543,12 @@ footer {
 }
 
 .card-btn.copy-btn {
-    background: #1f6feb;
+    background: #238636;
     color: white;
 }
 
 .card-btn.copy-btn:hover {
-    background: #1158c7;
+    background: #2ea043;
 }
 
 .card-btn.copy-btn.copied {
@@ -1579,7 +1579,7 @@ footer {
 
 .card-code textarea:focus {
     outline: none;
-    border-color: #58a6ff;
+    border-color: #2ea043;
 }
 
 /* 개인정보 처리방침 섹션 스타일 */
@@ -1608,7 +1608,7 @@ footer {
 
 .contact-info h4 {
     margin: 0 0 15px 0;
-    color: #58a6ff;
+    color: #2ea043;
 }
 
 .contact-info p {
@@ -1656,12 +1656,12 @@ footer {
 
 .page-btn:hover {
     background: #30363d;
-    border-color: #58a6ff;
+    border-color: #2ea043;
 }
 
 .page-btn.active {
-    background: #1f6feb;
-    border-color: #1f6feb;
+    background: #238636;
+    border-color: #238636;
     color: white;
 }
 
@@ -1682,7 +1682,7 @@ footer {
 
 .workflow-enable-guide h4 {
     margin: 0 0 20px 0;
-    color: #58a6ff;
+    color: #2ea043;
     font-size: 1.1em;
     text-align: center;
 }
@@ -1715,9 +1715,9 @@ footer {
 }
 
 .guide-image:hover {
-    border-color: #58a6ff;
+    border-color: #2ea043;
     transform: scale(1.02);
-    box-shadow: 0 4px 12px rgba(88, 166, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(46, 160, 67, 0.2);
 }
 
 .guide-description {
@@ -1763,7 +1763,7 @@ footer {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    border: 2px solid #58a6ff;
+    border: 2px solid #2ea043;
 }
 
 .detail-info h4 {
@@ -1842,7 +1842,7 @@ footer {
     display: block;
     font-size: 1.1em;
     font-weight: 700;
-    color: #58a6ff;
+    color: #2ea043;
 }
 
 /* GitHub 링크 스타일 */
@@ -1855,7 +1855,7 @@ footer {
 }
 
 .github-link:hover {
-    color: #58a6ff;
+    color: #2ea043;
     text-decoration: underline;
 }
 
@@ -2086,7 +2086,7 @@ footer {
 
 .import-url button {
     padding: 8px 12px;
-    background: #0366d6;
+    background: #238636;
     color: white;
     border: none;
     border-radius: 4px;
@@ -2095,7 +2095,7 @@ footer {
 }
 
 .import-url button:hover {
-    background: #0256c7;
+    background: #2ea043;
 }
 
 /* 카드 임베딩 섹션 */
@@ -2301,7 +2301,7 @@ footer {
 }
 
 .close-button:hover {
-    color: #58a6ff;
+    color: #2ea043;
 }
 
 .modal-caption {
@@ -2352,7 +2352,7 @@ footer {
 
 .ranking-item:hover {
     background: #21262d;
-    border-color: #58a6ff;
+    border-color: #2ea043;
     transform: translateX(4px);
 }
 
@@ -2440,8 +2440,8 @@ footer {
 }
 
 .toast.info {
-    background: #1f6feb;
-    border-left: 4px solid #58a6ff;
+    background: #238636;
+    border-left: 4px solid #2ea043;
 }
 
 .toast-icon {
