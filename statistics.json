@@ -1,29 +1,20 @@
 {
-  "lastUpdated": "2025-07-02T07:02:05.657Z",
+  "lastUpdated": "2025-07-02T07:36:50.916Z",
   "totalParticipants": 2,
   "activeParticipants": 0,
   "recordHolders": 0,
-  "weeklySuccessful": 2,
+  "weeklySuccessful": 1,
   "participants": [
     {
       "username": "tlqhrm",
       "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-      "lastPushed": "2025-07-02T06:15:57Z",
+      "lastPushed": "2025-07-02T07:36:32Z",
       "currentStreak": 1,
       "maxStreak": 1,
       "totalWeeks": 1,
       "successRate": 100,
-      "currentWeekSuccess": true
-    },
-    {
-      "username": "freeflab-muphi",
-      "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-      "lastPushed": "2025-07-02T06:16:47Z",
-      "currentStreak": 1,
-      "maxStreak": 1,
-      "totalWeeks": 1,
-      "successRate": 100,
-      "currentWeekSuccess": true
+      "currentWeekSuccess": true,
+      "currentWeekCommits": 2
     }
   ],
   "averageStreak": 1,
@@ -32,66 +23,39 @@
     {
       "username": "tlqhrm",
       "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-      "lastPushed": "2025-07-02T06:15:57Z",
+      "lastPushed": "2025-07-02T07:36:32Z",
       "currentStreak": 1,
       "maxStreak": 1,
       "totalWeeks": 1,
       "successRate": 100,
-      "currentWeekSuccess": true
-    },
-    {
-      "username": "freeflab-muphi",
-      "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-      "lastPushed": "2025-07-02T06:16:47Z",
-      "currentStreak": 1,
-      "maxStreak": 1,
-      "totalWeeks": 1,
-      "successRate": 100,
-      "currentWeekSuccess": true
+      "currentWeekSuccess": true,
+      "currentWeekCommits": 2
     }
   ],
   "rankingBySuccessRate": [
     {
       "username": "tlqhrm",
       "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-      "lastPushed": "2025-07-02T06:15:57Z",
+      "lastPushed": "2025-07-02T07:36:32Z",
       "currentStreak": 1,
       "maxStreak": 1,
       "totalWeeks": 1,
       "successRate": 100,
-      "currentWeekSuccess": true
-    },
-    {
-      "username": "freeflab-muphi",
-      "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-      "lastPushed": "2025-07-02T06:16:47Z",
-      "currentStreak": 1,
-      "maxStreak": 1,
-      "totalWeeks": 1,
-      "successRate": 100,
-      "currentWeekSuccess": true
+      "currentWeekSuccess": true,
+      "currentWeekCommits": 2
     }
   ],
   "rankingByMaxStreak": [
     {
       "username": "tlqhrm",
       "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-      "lastPushed": "2025-07-02T06:15:57Z",
+      "lastPushed": "2025-07-02T07:36:32Z",
       "currentStreak": 1,
       "maxStreak": 1,
       "totalWeeks": 1,
       "successRate": 100,
-      "currentWeekSuccess": true
-    },
-    {
-      "username": "freeflab-muphi",
-      "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-      "lastPushed": "2025-07-02T06:16:47Z",
-      "currentStreak": 1,
-      "maxStreak": 1,
-      "totalWeeks": 1,
-      "successRate": 100,
-      "currentWeekSuccess": true
+      "currentWeekSuccess": true,
+      "currentWeekCommits": 2
     }
   ]
 }
