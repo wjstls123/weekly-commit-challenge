@@ -126,6 +126,14 @@ function initProfileSearch() {
             searchBtn.click();
         }
     });
+    
+    // 코드 탭 클릭 이벤트 리스너 추가
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('code-tab')) {
+            const tab = e.target.getAttribute('data-tab');
+            switchCodeTab(tab);
+        }
+    });
 }
 
 // GitHub URL에서 사용자명 추출
@@ -151,6 +159,9 @@ function showProfileUI(data) {
     const profileResult = document.getElementById('profileResult');
     profileResult.style.display = 'block';
 
+    // GitHub에서 제공하는 SVG 카드 확인
+    const cardUrl = `https://raw.githubusercontent.com/tlqhrm/weekly-commit-challenge/master/cards/user-${data.username}.svg`;
+    
     profileResult.innerHTML = `
         <div class="profile-header">
             <img class="profile-avatar" src="${data.avatarUrl}" alt="프로필 이미지">
@@ -158,6 +169,44 @@ function showProfileUI(data) {
                 <h3>${data.username} <a href="https://github.com/${data.username}" target="_blank" class="github-link">https://github.com/${data.username}</a></h3>
                 <p class="profile-status ${data.currentWeekSuccess ? 'success' : 'progress'}">
                     ${data.currentWeekSuccess ? '✅ 이번 주 성공' : `🔄 진행중 (${data.currentWeekCommits}개)`}
+                </p>
+            </div>
+        </div>
+        
+        <div class="profile-card-section">
+            <h4>내 실시간 프로필 카드</h4>
+            <div class="card-preview">
+                <iframe src="card-proxy.html?username=${data.username}" 
+                        width="400" height="130" frameborder="0"
+                        style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></iframe>
+            </div>
+            <div class="card-import-section">
+                <p style="font-size: 13px; color: #586069; margin: 0 0 10px 0;">
+                    <strong>카드 임베드 코드:</strong>
+                </p>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="font-size: 12px; color: #586069; display: block; margin-bottom: 5px;">HTML (웹사이트/블로그용):</label>
+                    <div class="import-url">
+                        <input type="text" readonly 
+                               value='<iframe src="https://tlqhrm.github.io/weekly-commit-challenge/card-proxy.html?username=${data.username}" width="400" height="130" frameborder="0"></iframe>'
+                               id="htmlCode-${data.username}">
+                        <button onclick="copyToClipboard('htmlCode-${data.username}')">복사</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label style="font-size: 12px; color: #586069; display: block; margin-bottom: 5px;">Markdown (GitHub README용):</label>
+                    <div class="import-url">
+                        <input type="text" readonly 
+                               value='[![Weekly Commit Challenge](https://img.shields.io/badge/Weekly%20Commit%20Challenge-Click%20to%20View-blue)](https://tlqhrm.github.io/weekly-commit-challenge/card-proxy.html?username=${data.username})'
+                               id="markdownCode-${data.username}">
+                        <button onclick="copyToClipboard('markdownCode-${data.username}')">복사</button>
+                    </div>
+                </div>
+                
+                <p style="font-size: 11px; color: #8b949e; margin: 10px 0 0 0;">
+                    ⚡ 실시간 업데이트 | 🎨 성과별 색상 변화 | 🖱️ 클릭 시 대시보드 이동
                 </p>
             </div>
         </div>
@@ -1183,3 +1232,67 @@ function loadSavedProfile() {
 
 // 전역 함수로 캐시 상태 확인 가능하도록
 window.debugCache = debugCacheStatus;
+
+// 클립보드 복사 함수
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    element.select();
+    element.setSelectionRange(0, 99999); // 모바일용
+    
+    try {
+        document.execCommand('copy');
+        
+        // 복사 성공 피드백
+        const button = element.parentElement.querySelector('button');
+        const originalText = button.textContent;
+        button.textContent = '복사됨!';
+        button.style.background = '#28a745';
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = '#0366d6';
+        }, 2000);
+    } catch (err) {
+        console.error('복사 실패:', err);
+        alert('복사에 실패했습니다. 수동으로 선택해서 복사해주세요.');
+    }
+}
+
+// 코드 탭 전환 함수
+function switchCodeTab(tab) {
+    const tabs = document.querySelectorAll('.code-tab');
+    const blocks = document.querySelectorAll('.code-block');
+    
+    tabs.forEach(t => t.classList.remove('active'));
+    blocks.forEach(b => b.classList.add('hidden'));
+    
+    document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+    document.getElementById(`${tab}-code`).classList.remove('hidden');
+}
+
+// 코드 복사 함수 (메인 페이지용)
+function copyCode(blockId) {
+    const block = document.getElementById(blockId);
+    const code = block.querySelector('code').textContent;
+    
+    navigator.clipboard.writeText(code).then(() => {
+        const button = block.querySelector('.copy-btn');
+        const originalText = button.textContent;
+        button.textContent = '복사됨!';
+        button.style.background = 'rgba(40, 167, 69, 0.8)';
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = 'rgba(255,255,255,0.2)';
+        }, 2000);
+    }).catch(() => {
+        alert('복사에 실패했습니다.');
+    });
+}
+
+// 전역 함수로 등록
+window.copyToClipboard = copyToClipboard;
+window.switchCodeTab = switchCodeTab;
+window.copyCode = copyCode;

@@ -1,0 +1,216 @@
+name: Generate Challenge Cards
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # 매시간 실행
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/generate-cards.yml'
+      - 'cards/**'
+
+jobs:
+  generate-cards:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Create card generation script
+        run: |
+          cat > generate-card.js << 'EOF'
+          function generateUserCard(username, stats) {
+            const currentStreak = stats.currentStreak || 0;
+            const maxStreak = stats.maxStreak || 0;
+            const successRate = stats.successRate || 0;
+            const totalWeeks = stats.totalWeeks || 0;
+            const currentWeekSuccess = stats.currentWeekSuccess || false;
+            
+            // Color schemes based on performance
+            const getStreakColor = (streak) => {
+              if (streak >= 20) return '#22c55e';
+              if (streak >= 10) return '#3b82f6';
+              if (streak >= 5) return '#8b5cf6';
+              return '#64748b';
+            };
+            
+            const getSuccessRateColor = (rate) => {
+              if (rate >= 90) return '#22c55e';
+              if (rate >= 70) return '#3b82f6';
+              if (rate >= 50) return '#f59e0b';
+              return '#ef4444';
+            };
+            
+            const streakColor = getStreakColor(currentStreak);
+            const rateColor = getSuccessRateColor(successRate);
+            
+            return `<svg width="400" height="130" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+              <defs>
+                <linearGradient id="grad-${username}" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#1e293b;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+                </linearGradient>
+                <style>
+                  .title { font: 600 18px 'Segoe UI', Ubuntu, sans-serif; fill: #f1f5f9; }
+                  .subtitle { font: 400 12px 'Segoe UI', Ubuntu, sans-serif; fill: #94a3b8; }
+                  .label { font: 400 11px 'Segoe UI', Ubuntu, sans-serif; fill: #94a3b8; }
+                  .value { font: 600 16px 'Segoe UI', Ubuntu, sans-serif; }
+                  .small-value { font: 500 13px 'Segoe UI', Ubuntu, sans-serif; }
+                </style>
+              </defs>
+              
+              <a xlink:href="https://tlqhrm.github.io/weekly-commit-challenge/" target="_blank">
+                <rect width="400" height="130" rx="6" fill="url(#grad-${username})"/>
+                <rect x="1" y="1" width="398" height="128" rx="5" fill="none" stroke="#334155" stroke-width="1"/>
+                
+                <g transform="translate(25, 25)">
+                  <text class="title" y="0">Weekly Commit Challenge</text>
+                  <text class="subtitle" y="20">${username}</text>
+                </g>
+                
+                <g transform="translate(25, 65)">
+                  <g transform="translate(0, 0)">
+                    <text class="label" y="0">Current Streak</text>
+                    <text class="value" y="20" fill="${streakColor}">${currentStreak} weeks</text>
+                  </g>
+                  
+                  <g transform="translate(120, 0)">
+                    <text class="label" y="0">Success Rate</text>
+                    <text class="value" y="20" fill="${rateColor}">${successRate}%</text>
+                  </g>
+                  
+                  <g transform="translate(220, 0)">
+                    <text class="label" y="0">Total Weeks</text>
+                    <text class="small-value" y="20" fill="#64748b">${totalWeeks}</text>
+                  </g>
+                  
+                  <g transform="translate(300, 0)">
+                    <text class="label" y="0">Max Streak</text>
+                    <text class="small-value" y="20" fill="#8b5cf6">${maxStreak}</text>
+                  </g>
+                </g>
+                
+                <g transform="translate(25, 115)">
+                  <rect width="350" height="4" rx="2" fill="#1e293b"/>
+                  <rect width="${Math.min(350 * successRate / 100, 350)}" height="4" rx="2" fill="${rateColor}"/>
+                </g>
+              </a>
+            </svg>`;
+          }
+          
+          module.exports = { generateUserCard };
+          EOF
+      
+      - name: Generate SVG cards
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # cards 디렉토리 생성
+          mkdir -p cards
+          
+          # GitHub API로 통계 이슈 가져오기
+          STATS_RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/issues?labels=statistics&state=open")
+          
+          if [ "$(echo "$STATS_RESPONSE" | jq 'length')" -eq 0 ]; then
+            echo "통계 이슈를 찾을 수 없습니다."
+            exit 0
+          fi
+          
+          # 최신 통계 데이터 추출
+          ISSUE_BODY=$(echo "$STATS_RESPONSE" | jq -r '.[0].body')
+          STATS_JSON=$(echo "$ISSUE_BODY" | sed -n '/```json/,/```/p' | sed '1d;$d')
+          
+          # 전체 통계 카드 생성
+          cat > cards/overall-stats.svg << 'EOF'
+          <svg width="400" height="120" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+              </linearGradient>
+            </defs>
+            <rect width="400" height="120" rx="10" fill="url(#gradient)"/>
+            <text x="20" y="30" font-family="Arial, sans-serif" font-size="20" fill="white" font-weight="bold">
+              Weekly Commit Challenge
+            </text>
+          EOF
+          
+          # 통계 추가
+          TOTAL_PARTICIPANTS=$(echo "$STATS_JSON" | jq -r '.totalParticipants // 0')
+          WEEKLY_SUCCESSFUL=$(echo "$STATS_JSON" | jq -r '.weeklySuccessful // 0')
+          AVG_SUCCESS_RATE=$(echo "$STATS_JSON" | jq -r '.averageSuccessRate // 0')
+          
+          cat >> cards/overall-stats.svg << EOF
+            <text x="20" y="60" font-family="Arial, sans-serif" font-size="14" fill="white">
+              총 참여자: ${TOTAL_PARTICIPANTS}명 | 주간 성공: ${WEEKLY_SUCCESSFUL}명
+            </text>
+            <text x="20" y="85" font-family="Arial, sans-serif" font-size="14" fill="white">
+              평균 성공률: ${AVG_SUCCESS_RATE}%
+            </text>
+            <text x="20" y="105" font-family="Arial, sans-serif" font-size="10" fill="white" opacity="0.8">
+              Last updated: $(TZ='Asia/Seoul' date '+%Y-%m-%d %H:%M KST')
+            </text>
+          </svg>
+          EOF
+          
+          # Node.js로 개인 카드 생성
+          node << 'SCRIPT'
+          const fs = require('fs');
+          const { generateUserCard } = require('./generate-card.js');
+          
+          // 환경변수에서 통계 데이터 가져오기
+          const statsJson = process.env.STATS_JSON;
+          if (!statsJson) {
+            console.error('STATS_JSON not found');
+            process.exit(1);
+          }
+          
+          const stats = JSON.parse(statsJson);
+          
+          // 모든 참여자의 카드 생성
+          if (stats.participants && stats.participants.length > 0) {
+            stats.participants.forEach(user => {
+              if (user.username) {
+                const svg = generateUserCard(user.username, {
+                  currentStreak: user.currentStreak || 0,
+                  maxStreak: user.maxStreak || 0,
+                  successRate: user.successRate || 0,
+                  totalWeeks: user.totalWeeks || 0,
+                  currentWeekSuccess: user.currentWeekSuccess || false
+                });
+                
+                fs.writeFileSync(`cards/user-${user.username}.svg`, svg);
+                console.log(`Generated card for ${user.username}`);
+              }
+            });
+          }
+          SCRIPT
+          
+          # STATS_JSON 환경변수 설정
+          export STATS_JSON="$STATS_JSON"
+          
+          echo "카드 생성 완료!"
+          echo "생성된 카드 수: $(ls cards/user-*.svg 2>/dev/null | wc -l)"
+          ls -la cards/
+      
+      - name: Commit and push cards
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          git add cards/
+          
+          if ! git diff --staged --quiet; then
+            git commit -m "🎨 Update challenge cards $(TZ='Asia/Seoul' date '+%Y-%m-%d %H:%M')"
+            git push
+          else
+            echo "변경사항 없음"
+          fi

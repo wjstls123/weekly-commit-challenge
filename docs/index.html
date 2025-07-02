@@ -49,6 +49,58 @@
             </div>
         </section>
 
+
+        <section class="card-showcase">
+            <h2>📊 동적 카드 임베딩</h2>
+            <p class="showcase-desc">실시간으로 업데이트되는 카드를 README나 웹사이트에 임베드할 수 있습니다!</p>
+            
+            <div class="card-demo">
+                <div class="demo-card">
+                    <h3>카드 예시</h3>
+                    <div class="demo-iframe-container">
+                        <iframe src="card-proxy.html?username=tlqhrm" 
+                                width="400" height="130" frameborder="0"></iframe>
+                    </div>
+                </div>
+                
+                <div class="demo-code">
+                    <h3>사용법</h3>
+                    <div class="code-tabs">
+                        <button class="code-tab active" data-tab="iframe">HTML (추천)</button>
+                        <button class="code-tab" data-tab="markdown">Markdown</button>
+                    </div>
+                    
+                    <div class="code-content">
+                        <div class="code-block" id="iframe-code">
+                            <pre><code>&lt;iframe src="https://tlqhrm.github.io/weekly-commit-challenge/card-proxy.html?username=YOUR_USERNAME" 
+        width="400" height="130" frameborder="0"&gt;&lt;/iframe&gt;</code></pre>
+                            <button class="copy-btn" onclick="copyCode('iframe-code')">복사</button>
+                        </div>
+                        
+                        <div class="code-block hidden" id="markdown-code">
+                            <pre><code>[![Weekly Commit Challenge](https://img.shields.io/badge/Weekly%20Commit%20Challenge-Click%20to%20View-blue)](https://tlqhrm.github.io/weekly-commit-challenge/card-proxy.html?username=YOUR_USERNAME)</code></pre>
+                            <button class="copy-btn" onclick="copyCode('markdown-code')">복사</button>
+                        </div>
+                    </div>
+                    
+                    <div class="demo-features">
+                        <div class="feature-item">
+                            <span class="feature-icon">⚡</span>
+                            <span>실시간 업데이트</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🔄</span>
+                            <span>자동 동기화</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🎨</span>
+                            <span>성과별 색상 변화</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="ranking">
             <h2>🏅 참여자 랭킹</h2>
             <div class="ranking-filters">

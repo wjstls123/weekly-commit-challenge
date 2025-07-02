@@ -131,19 +131,51 @@ jobs:
                                       const jsonContent = Buffer.from(jsonResponse.content, 'base64').toString();
                                       const recordData = JSON.parse(jsonContent);
                                       
-                                      participantData = {
-                                          username: fork.owner.login,
-                                          avatarUrl: recordData.avatarUrl || fork.owner.avatar_url,
-                                          lastPushed: fork.pushed_at,
-                                          currentStreak: recordData.success ? 1 : 0,
-                                          maxStreak: recordData.success ? 1 : 0,
-                                          totalWeeks: 1,
-                                          successRate: recordData.success ? 100 : 0,
-                                          currentWeekSuccess: recordData.success
-                                      };
-                                      
-                                      if (recordData.success) stats.weeklySuccessful++;
-                                      console.log(`${fork.owner.login}: record.json 사용`);
+                                      if (recordData.records && recordData.records.length > 0) {
+                                          const records = recordData.records;
+                                          let currentStreak = 0;
+                                          let maxStreak = 0;
+                                          let tempStreak = 0;
+                                          let successWeeks = 0;
+                                          
+                                          // 최신부터 역순으로 현재 연속 계산
+                                          for (let i = records.length - 1; i >= 0; i--) {
+                                              if (records[i].success) {
+                                                  currentStreak++;
+                                              } else {
+                                                  break;
+                                              }
+                                          }
+                                          
+                                          // 최장 연속 계산
+                                          for (const record of records) {
+                                              if (record.success) {
+                                                  tempStreak++;
+                                                  maxStreak = Math.max(maxStreak, tempStreak);
+                                                  successWeeks++;
+                                              } else {
+                                                  tempStreak = 0;
+                                              }
+                                          }
+                                          
+                                          const lastRecord = records[records.length - 1];
+                                          const currentWeekSuccess = lastRecord ? lastRecord.success : false;
+                                          const successRate = records.length > 0 ? Math.round((successWeeks / records.length) * 100 * 10) / 10 : 0;
+                                          
+                                          participantData = {
+                                              username: fork.owner.login,
+                                              avatarUrl: recordData.avatarUrl || fork.owner.avatar_url,
+                                              lastPushed: fork.pushed_at,
+                                              currentStreak: currentStreak,
+                                              maxStreak: maxStreak,
+                                              totalWeeks: records.length,
+                                              successRate: successRate,
+                                              currentWeekSuccess: currentWeekSuccess
+                                          };
+                                          
+                                          if (currentWeekSuccess) stats.weeklySuccessful++;
+                                          console.log(`${fork.owner.login}: record.json 사용 - ${records.length}주 기록`);
+                                      }
                                   }
                               } catch (jsonError) {
                                   console.log(`${fork.owner.login}: record.json 없음, record.md 시도`);
