@@ -1,8 +1,15 @@
 {
   "username": "tlqhrm",
   "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-  "lastUpdated": "2025-07-02T17:00:31+09:00",
+  "lastUpdated": "2025-07-02T17:01:11+09:00",
   "records": [
+    {
+      "period": "06/30",
+      "week": "~",
+      "commits": 07/06,
+      "success": false,
+      "status": "2025년"
+    }    ,
     {
       "period": "06/30",
       "week": "~",
