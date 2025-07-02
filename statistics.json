@@ -1,14 +1,14 @@
 {
-  "lastUpdated": "2025-07-02T06:02:00.636Z",
+  "lastUpdated": "2025-07-02T07:02:05.657Z",
   "totalParticipants": 2,
   "activeParticipants": 0,
   "recordHolders": 0,
-  "weeklySuccessful": 1,
+  "weeklySuccessful": 2,
   "participants": [
     {
       "username": "tlqhrm",
       "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-      "lastPushed": "2025-07-02T05:48:08Z",
+      "lastPushed": "2025-07-02T06:15:57Z",
       "currentStreak": 1,
       "maxStreak": 1,
       "totalWeeks": 1,
@@ -17,22 +17,22 @@
     },
     {
       "username": "freeflab-muphi",
-      "avatarUrl": "https://avatars.githubusercontent.com/u/206504904?v=4",
-      "lastPushed": "2025-07-01T15:21:23Z",
-      "currentStreak": 0,
-      "maxStreak": 0,
-      "totalWeeks": 0,
-      "successRate": 0,
-      "currentWeekSuccess": false
+      "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
+      "lastPushed": "2025-07-02T06:16:47Z",
+      "currentStreak": 1,
+      "maxStreak": 1,
+      "totalWeeks": 1,
+      "successRate": 100,
+      "currentWeekSuccess": true
     }
   ],
   "averageStreak": 1,
-  "averageSuccessRate": 50,
+  "averageSuccessRate": 100,
   "rankingByStreak": [
     {
       "username": "tlqhrm",
       "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-      "lastPushed": "2025-07-02T05:48:08Z",
+      "lastPushed": "2025-07-02T06:15:57Z",
       "currentStreak": 1,
       "maxStreak": 1,
       "totalWeeks": 1,
@@ -41,20 +41,20 @@
     },
     {
       "username": "freeflab-muphi",
-      "avatarUrl": "https://avatars.githubusercontent.com/u/206504904?v=4",
-      "lastPushed": "2025-07-01T15:21:23Z",
-      "currentStreak": 0,
-      "maxStreak": 0,
-      "totalWeeks": 0,
-      "successRate": 0,
-      "currentWeekSuccess": false
+      "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
+      "lastPushed": "2025-07-02T06:16:47Z",
+      "currentStreak": 1,
+      "maxStreak": 1,
+      "totalWeeks": 1,
+      "successRate": 100,
+      "currentWeekSuccess": true
     }
   ],
   "rankingBySuccessRate": [
     {
       "username": "tlqhrm",
       "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-      "lastPushed": "2025-07-02T05:48:08Z",
+      "lastPushed": "2025-07-02T06:15:57Z",
       "currentStreak": 1,
       "maxStreak": 1,
       "totalWeeks": 1,
@@ -63,20 +63,20 @@
     },
     {
       "username": "freeflab-muphi",
-      "avatarUrl": "https://avatars.githubusercontent.com/u/206504904?v=4",
-      "lastPushed": "2025-07-01T15:21:23Z",
-      "currentStreak": 0,
-      "maxStreak": 0,
-      "totalWeeks": 0,
-      "successRate": 0,
-      "currentWeekSuccess": false
+      "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
+      "lastPushed": "2025-07-02T06:16:47Z",
+      "currentStreak": 1,
+      "maxStreak": 1,
+      "totalWeeks": 1,
+      "successRate": 100,
+      "currentWeekSuccess": true
     }
   ],
   "rankingByMaxStreak": [
     {
       "username": "tlqhrm",
       "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-      "lastPushed": "2025-07-02T05:48:08Z",
+      "lastPushed": "2025-07-02T06:15:57Z",
       "currentStreak": 1,
       "maxStreak": 1,
       "totalWeeks": 1,
@@ -85,13 +85,13 @@
     },
     {
       "username": "freeflab-muphi",
-      "avatarUrl": "https://avatars.githubusercontent.com/u/206504904?v=4",
-      "lastPushed": "2025-07-01T15:21:23Z",
-      "currentStreak": 0,
-      "maxStreak": 0,
-      "totalWeeks": 0,
-      "successRate": 0,
-      "currentWeekSuccess": false
+      "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
+      "lastPushed": "2025-07-02T06:16:47Z",
+      "currentStreak": 1,
+      "maxStreak": 1,
+      "totalWeeks": 1,
+      "successRate": 100,
+      "currentWeekSuccess": true
     }
   ]
 }
