@@ -110,7 +110,6 @@ jobs:
                       pushed_at: originalRepo.pushed_at
                   });
                   
-                  stats.totalParticipants = allForks.length;
                   console.log(`총 ${allForks.length}개의 레포지토리 발견 (원본 포함)`);
                   
                   // 각 fork의 record.md 확인 (배치 처리)
@@ -306,6 +305,9 @@ jobs:
                       // API 제한 대비 지연
                       await new Promise(resolve => setTimeout(resolve, 500));
                   }
+                  
+                  // 실제 유효한 참여자 수로 업데이트
+                  stats.totalParticipants = stats.participants.length;
                   
                   // 평균 연속 주차 및 성공률 계산
                   if (stats.participants.length > 0) {

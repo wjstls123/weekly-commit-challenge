@@ -266,6 +266,53 @@ jobs:
             echo "ℹ️ 원본 레포지토리 - 초기화 스킵"
           fi
 
+      - name: Check existing records
+        id: check_records
+        run: |
+          WEEK_NUM="${{ steps.week_number.outputs.week_number }}"
+          YEAR=$(TZ='Asia/Seoul' date '+%Y')
+          PERIOD_TYPE="${{ steps.check_commits.outputs.period_type }}"
+          
+          if [ "$PERIOD_TYPE" = "지난주" ]; then
+            # 월요일: 지난주와 이번주 패턴 체크
+            LAST_WEEK_PATTERN="${YEAR}년 ${WEEK_NUM}주차"
+            THIS_WEEK_PATTERN="${YEAR}년 $((WEEK_NUM + 1))주차"
+            
+            LAST_WEEK_EXISTS=false
+            THIS_WEEK_EXISTS=false
+            
+            if [ -f record.md ]; then
+              if grep -q "$LAST_WEEK_PATTERN" record.md; then
+                echo "⚠️ 지난주 기록 이미 존재: $LAST_WEEK_PATTERN"
+                LAST_WEEK_EXISTS=true
+              fi
+              if grep -q "$THIS_WEEK_PATTERN" record.md; then
+                echo "⚠️ 이번주 기록 이미 존재: $THIS_WEEK_PATTERN"
+                THIS_WEEK_EXISTS=true
+              fi
+            fi
+            
+            echo "last_week_exists=$LAST_WEEK_EXISTS" >> $GITHUB_OUTPUT
+            echo "this_week_exists=$THIS_WEEK_EXISTS" >> $GITHUB_OUTPUT
+            echo "last_week_pattern=$LAST_WEEK_PATTERN" >> $GITHUB_OUTPUT
+            echo "this_week_pattern=$THIS_WEEK_PATTERN" >> $GITHUB_OUTPUT
+            
+          else
+            # 화~일요일: 이번주 패턴만 체크
+            CURRENT_WEEK_PATTERN="${YEAR}년 ${WEEK_NUM}주차"
+            
+            WEEK_EXISTS=false
+            if [ -f record.md ]; then
+              if grep -q "$CURRENT_WEEK_PATTERN" record.md; then
+                echo "🔄 이번주 기록 업데이트 대상: $CURRENT_WEEK_PATTERN"
+                WEEK_EXISTS=true
+              fi
+            fi
+            
+            echo "week_exists=$WEEK_EXISTS" >> $GITHUB_OUTPUT
+            echo "current_week_pattern=$CURRENT_WEEK_PATTERN" >> $GITHUB_OUTPUT
+          fi
+
       - name: Update record.md
         run: |
           COMMIT_COUNT="${{ steps.check_commits.outputs.commit_count }}"
@@ -295,7 +342,15 @@ jobs:
           
           # 월요일인지 확인
           if [ "$PERIOD_TYPE" = "지난주" ]; then
-            # 월요일: 지난주 + 오늘 두 개의 기록 생성
+            # 월요일: 지난주 + 오늘 두 개의 기록 처리
+            
+            # 기존 기록 체크 (업데이트 또는 추가 결정)
+            LAST_WEEK_EXISTS="${{ steps.check_records.outputs.last_week_exists }}"
+            THIS_WEEK_EXISTS="${{ steps.check_records.outputs.this_week_exists }}"
+            LAST_WEEK_PATTERN="${{ steps.check_records.outputs.last_week_pattern }}"
+            THIS_WEEK_PATTERN="${{ steps.check_records.outputs.this_week_pattern }}"
+            
+            echo "📊 월요일 처리: 지난주($LAST_WEEK_PATTERN) 존재=$LAST_WEEK_EXISTS, 이번주($THIS_WEEK_PATTERN) 존재=$THIS_WEEK_EXISTS"
             
             # 1. 지난주 기록
             echo '{"period":"'$WEEK_PERIOD'","periodType":"지난주","dateRange":"'$PERIOD_START' ~ '$PERIOD_END'","year":'$YEAR',"weekNumber":'$WEEK_NUM',"commitCount":'$COMMIT_COUNT',"success":'$SUCCESS',"status":"'$STATUS_EMOJI'","lastUpdated":"'$(TZ='Asia/Seoul' date -Iseconds)'","username":"${{ github.repository_owner }}","avatarUrl":"'$AVATAR_URL'"}' > record_last_week.json
@@ -327,12 +382,11 @@ jobs:
               echo '  "lastUpdated": "'$(TZ='Asia/Seoul' date -Iseconds)'",'
               echo '  "records": ['
               
-              # 기존 기록들 추가
+              # 기존 기록들 추가 (업데이트 대상 제외)
               if [ -f record.md.bak ]; then
                 first_record=true
                 while IFS= read -r line; do
                   if [[ "$line" == "|"*"|"*"|"*"|"* && "$line" != *"기간"* && "$line" != *"---"* ]]; then
-                    if [ "$first_record" = false ]; then echo '    ,'; fi
                     parts=($(echo "$line" | tr '|' ' '))
                     # ID 컬럼이 있는지 확인 (5개 컬럼이면 ID 있음, 4개면 없음)
                     if [ ${#parts[@]} -eq 6 ]; then
@@ -348,6 +402,14 @@ jobs:
                       commits="${parts[3]// /}"
                       status="${parts[4]// /}"
                     fi
+                    
+                    # 업데이트 대상 주차는 스킵
+                    if [[ "$week" == "$LAST_WEEK_PATTERN" || "$week" == "$THIS_WEEK_PATTERN" ]]; then
+                      echo "🔄 월요일 업데이트 대상 스킵: $week"
+                      continue
+                    fi
+                    
+                    if [ "$first_record" = false ]; then echo '    ,'; fi
                     success="false"
                     if [[ "$status" == *"✅"* && "$status" != *"🔄"* ]]; then
                       success="true"
@@ -362,7 +424,7 @@ jobs:
                     first_record=false
                   fi
                 done < record.md.bak
-                echo ','
+                if [ "$first_record" = false ]; then echo ','; fi
               fi
               
               # 지난주 기록 추가
@@ -434,7 +496,9 @@ jobs:
             echo "| $NEXT_ID | $THIS_WEEK_PERIOD | ${YEAR}년 ${THIS_WEEK_NUM}주차 | $TODAY_COMMIT_COUNT | $TODAY_STATUS_EMOJI |" >> record.md
             
           else
-            # 화~일요일: 전체 기록 포함
+            # 화~일요일: 이번주 기록 업데이트 또는 추가
+            WEEK_EXISTS="${{ steps.check_records.outputs.week_exists }}"
+            CURRENT_WEEK_PATTERN="${{ steps.check_records.outputs.current_week_pattern }}"
             {
               echo '{'
               echo '  "username": "${{ github.repository_owner }}",'
@@ -442,7 +506,7 @@ jobs:
               echo '  "lastUpdated": "'$(TZ='Asia/Seoul' date -Iseconds)'",'
               echo '  "records": ['
               
-              # 기존 기록들 추가
+              # 기존 기록들 추가 (현재 주차 제외)
               if [ -f record.md.bak ]; then
                 first_record=true
                 while IFS= read -r line; do
@@ -477,10 +541,10 @@ jobs:
                     first_record=false
                   fi
                 done < record.md.bak
-                echo ','
+                if [ "$first_record" = false ]; then echo ','; fi
               fi
               
-              # 현재 기록 추가
+              # 현재 기록 추가 (항상 마지막에)
               echo '    {'
               echo '      "period": "'$WEEK_PERIOD'",'
               echo '      "week": "'${YEAR}년 ${WEEK_NUM}주차'",'
