@@ -195,9 +195,6 @@ function showProfileUI(data) {
                     </div>
                 </div>
                 
-                <p style="font-size: 11px; color: #8b949e; margin: 10px 0 0 0;">
-                    🚀 GitHub README에서 바로 표시 | ⚡ 실시간 업데이트 | 🌍 전 세계 CDN
-                </p>
             </div>
         </div>
         
@@ -396,7 +393,13 @@ function displayRecentRecords(records) {
     const recentRecords = document.getElementById('recentRecords');
 
     if (!records || records.length === 0) {
-        recentRecords.innerHTML = '<div class="no-data" style="color: #8b949e; text-align: center; padding: 20px;">아직 기록이 없습니다</div>';
+        recentRecords.innerHTML = `
+            <div class="no-data" style="color: #8b949e; text-align: center; padding: 20px;">
+                <p style="margin-bottom: 10px;">📋 아직 기록이 없습니다</p>
+                <p style="font-size: 0.9em; color: #6e7681;">워크플로우가 아직 실행되지 않았습니다.<br>
+                Fork 후 GitHub Actions를 활성화했다면 곧 데이터가 수집됩니다.</p>
+            </div>
+        `;
         return;
     }
 

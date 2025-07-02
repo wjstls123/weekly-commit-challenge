@@ -2005,13 +2005,14 @@ footer {
 .profile-card-section {
     margin: 20px 0;
     padding: 20px;
-    background-color: #f6f8fa;
+    background-color: #0d1117;
+    border: 1px solid #30363d;
     border-radius: 8px;
 }
 
 .profile-card-section h4 {
     margin-bottom: 15px;
-    color: #1a202c;
+    color: #f0f6fc;
 }
 
 .card-preview {
@@ -2036,7 +2037,8 @@ footer {
 .card-import-section {
     margin-top: 20px;
     padding: 15px;
-    background-color: #f6f8fa;
+    background-color: #161b22;
+    border: 1px solid #30363d;
     border-radius: 6px;
 }
 
@@ -2050,11 +2052,12 @@ footer {
 .import-url input {
     flex: 1;
     padding: 8px 12px;
-    border: 1px solid #d1d5da;
+    border: 1px solid #30363d;
     border-radius: 4px;
     font-size: 14px;
     font-family: monospace;
-    background: white;
+    background: #0d1117;
+    color: #c9d1d9;
 }
 
 .import-url button {
@@ -2073,8 +2076,9 @@ footer {
 
 /* 카드 임베딩 섹션 */
 .card-embedding {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: #0d1117;
+    border-top: 1px solid #30363d;
+    color: #f0f6fc;
     padding: 60px 0;
     margin-top: 60px;
 }
@@ -2106,11 +2110,10 @@ footer {
 }
 
 .example-card, .example-result {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+    background: #161b22;
+    border: 1px solid #30363d;
     border-radius: 12px;
     padding: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .example-card h3, .example-result h3 {
@@ -2138,7 +2141,7 @@ footer {
     position: absolute;
     top: 10px;
     right: 10px;
-    background: rgba(255, 255, 255, 0.2);
+    background: #238636;
     color: white;
     border: none;
     padding: 8px 12px;
@@ -2149,7 +2152,7 @@ footer {
 }
 
 .code-block .copy-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: #2ea043;
 }
 
 .card-demo {
@@ -2167,11 +2170,10 @@ footer {
 
 .feature-item {
     text-align: center;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+    background: #161b22;
+    border: 1px solid #30363d;
     border-radius: 12px;
     padding: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -2180,11 +2182,6 @@ footer {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
-.feature-icon {
-    font-size: 2.5em;
-    display: block;
-    margin-bottom: 15px;
-}
 
 .feature-item h4 {
     margin-bottom: 10px;

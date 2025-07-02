@@ -27,6 +27,30 @@
                 </span>
                 <p class="challenge-info">지금 참여하면 이번 주부터 기록이 시작됩니다</p>
                 <p class="challenge-provocative">🤔 생각보다 쉽지 않을 걸요? 매주 커밋할 자신 있나요?</p>
+
+                <div class="fork-benefits" style="margin-top: 20px;">
+                    <div class="benefit-item">
+                        <span class="benefit-icon">🚀</span>
+                        <div>
+                            <h4>빠른 시작</h4>
+                            <p>Fork 후 Actions 활성화만 하면 완료</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">📝</span>
+                        <div>
+                            <h4>자동 기록</h4>
+                            <p>매주 커밋 내역이 테이블로 자동 누적</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">🔄</span>
+                        <div>
+                            <h4>지속적인 추적</h4>
+                            <p>주차별 성공/실패 기록을 한눈에 확인</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -164,104 +188,56 @@
                 </div>
             </div>
             <div class="fork-info">
-                <h3>✨ 간단한 참여 방법</h3>
-                <div class="fork-benefits">
-                    <div class="benefit-item">
-                        <span class="benefit-icon">🚀</span>
-                        <div>
-                            <h4>빠른 시작</h4>
-                            <p>Fork 후 Actions 활성화만 하면 완료</p>
-                        </div>
-                    </div>
-                    <div class="benefit-item">
-                        <span class="benefit-icon">📝</span>
-                        <div>
-                            <h4>자동 기록</h4>
-                            <p>매주 커밋 내역이 테이블로 자동 누적</p>
-                        </div>
-                    </div>
-                    <div class="benefit-item">
-                        <span class="benefit-icon">🔄</span>
-                        <div>
-                            <h4>지속적 추적</h4>
-                            <p>주차별 성공/실패 기록을 한눈에 확인</p>
-                        </div>
-                    </div>
-                </div>
+                <h3>⚙️ 워크플로우 작동 방식</h3>
                 <div class="workflow-terms">
-                    <h3>⚙️ 워크플로우 작동 방식</h3>
-                    <div class="terms-content">
-                        <h4>실행 주기</h4>
-                        <ul>
-                            <li>매일 오전 9시, 오후 9시 (KST) 자동 실행</li>
-                            <li>수동 실행 가능 (GitHub Actions → "Run workflow")</li>
-                        </ul>
+                    <h4>실행 주기</h4>
+                    <ul>
+                        <li>매일 오전 9시, 오후 9시 (KST) 자동 실행</li>
+                        <li>수동 실행 가능 (GitHub Actions → "Run workflow")</li>
+                    </ul>
 
-                        <h4>커밋 집계 대상</h4>
-                        <ul>
-                            <li>본인 계정의 <strong>공개 레포지토리만</strong> 수집</li>
-                            <li>weekly-commit-challenge 레포지토리는 제외</li>
-                            <li>봇이 작성한 커밋은 제외 (예: dependabot, renovate 등)</li>
-                        </ul>
+                    <h4>커밋 집계 대상</h4>
+                    <ul>
+                        <li>본인 계정의 <strong>공개 레포지토리만</strong> 수집</li>
+                        <li>weekly-commit-challenge 레포지토리는 제외</li>
+                        <li>봇이 작성한 커밋은 제외 (예: dependabot, renovate 등)</li>
+                    </ul>
 
-                        <h4>통계 및 랭킹 업데이트</h4>
-                        <ul>
-                            <li>통계 데이터와 참여자 랭킹은 <strong>매시간</strong>마다 자동으로 갱신됩니다</li>
-                        </ul>
-                    </div>
+                    <h4>통계 및 랭킹 업데이트</h4>
+                    <ul>
+                        <li>통계 데이터와 참여자 랭킹은 <strong>매시간</strong>마다 자동으로 갱신됩니다</li>
+                    </ul>
                 </div>
 
             </div>
         </section>
 
-        <section class="card-embedding">
+        <section class="how-to">
             <h2>🎨 README에 카드 추가하기</h2>
-            <div class="embedding-content">
-                <div class="embedding-intro">
-                    <p>GitHub 프로필 README에 실시간으로 업데이트되는 예쁜 카드를 추가해보세요!</p>
-                </div>
-                
-                <div class="embedding-example">
-                    <div class="example-card">
-                        <h3>📋 사용법</h3>
-                        <div class="code-block">
-                            <pre><code>![Weekly Commit Challenge](https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=YOUR_USERNAME)</code></pre>
-                            <button class="copy-btn" onclick="copyToClipboard('embedding-example')">복사</button>
-                        </div>
+            <div class="steps-vertical">
+                <div class="step-vertical">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <h3>코드 복사하기</h3>
                     </div>
-                    
-                    <div class="example-result">
-                        <h3>🎯 결과 예시</h3>
-                        <div class="card-demo">
-                            <img src="https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=tlqhrm" 
-                                 alt="Weekly Commit Challenge Card Example"
-                                 style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                        </div>
+                    <p>GitHub 프로필 README에 실시간으로 업데이트되는 카드를 추가해보세요</p>
+                    <div class="code-block">
+                        <pre><code>![Weekly Commit Challenge](https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=YOUR_USERNAME)</code></pre>
+                        <button class="copy-btn" onclick="copyToClipboard('embedding-example')">복사</button>
                     </div>
+                    <p class="step-example">YOUR_USERNAME을 본인의 GitHub 사용자명으로 변경하세요</p>
                 </div>
-                
-                <div class="embedding-features">
-                    <div class="feature-grid">
-                        <div class="feature-item">
-                            <span class="feature-icon">🚀</span>
-                            <h4>진짜 실시간</h4>
-                            <p>record.json 업데이트 즉시 반영</p>
-                        </div>
-                        <div class="feature-item">
-                            <span class="feature-icon">📱</span>
-                            <h4>GitHub README 완벽 지원</h4>
-                            <p>실제 이미지로 렌더링</p>
-                        </div>
-                        <div class="feature-item">
-                            <span class="feature-icon">⚡</span>
-                            <h4>초고속</h4>
-                            <p>전 세계 CDN으로 빠른 로딩</p>
-                        </div>
-                        <div class="feature-item">
-                            <span class="feature-icon">🎨</span>
-                            <h4>성과별 색상 변화</h4>
-                            <p>연속 주차에 따른 동적 색상</p>
-                        </div>
+
+                <div class="step-vertical">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <h3>결과 확인</h3>
+                    </div>
+                    <p>README에 추가하면 다음과 같은 카드가 표시됩니다</p>
+                    <div style="text-align: center; margin: 20px 0;">
+                        <img src="https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=tlqhrm"
+                             alt="Weekly Commit Challenge Card Example"
+                             style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 100%;">
                     </div>
                 </div>
             </div>
