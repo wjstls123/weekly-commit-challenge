@@ -936,12 +936,29 @@ async function fetchUserData(username) {
         return cachedData;
     }
 
-    // record.json에서 전체 데이터 가져오기
-    try {
-        const jsonResponse = await fetch(`https://api.github.com/repos/${username}/weekly-commit-challenge/contents/record.json`);
-        if (jsonResponse.ok) {
-            const jsonData = await jsonResponse.json();
-            const jsonContent = atob(jsonData.content);
+    // record.json API 응답 캐시 확인
+    const recordJsonCacheKey = `record_json_${username}`;
+    let recordJsonResponse = getCachedData(recordJsonCacheKey, 5 * 60 * 1000); // 5분
+    
+    if (!recordJsonResponse) {
+        // record.json에서 전체 데이터 가져오기
+        try {
+            const jsonResponse = await fetch(`https://api.github.com/repos/${username}/weekly-commit-challenge/contents/record.json`);
+            if (jsonResponse.ok) {
+                recordJsonResponse = await jsonResponse.json();
+                // API 응답 캐시에 저장
+                setCachedData(recordJsonCacheKey, recordJsonResponse);
+            }
+        } catch (jsonError) {
+            console.log('record.json 파일 읽기 실패:', jsonError.message);
+        }
+    } else {
+        console.log('캐시에서 record.json API 응답 로드:', username);
+    }
+    
+    if (recordJsonResponse) {
+        try {
+            const jsonContent = atob(recordJsonResponse.content);
             const recordData = JSON.parse(jsonContent);
             
             // 전체 기록에서 통계 계산
@@ -963,12 +980,12 @@ async function fetchUserData(username) {
                 recentRecords: records.slice(-5) // 최근 5개 기록
             };
             
-            // 캐시에 저장
+            // 최종 사용자 데이터 캐시에 저장
             setCachedData(cacheKey, data);
             return data;
+        } catch (parseError) {
+            console.log('record.json 파싱 실패:', parseError.message);
         }
-    } catch (jsonError) {
-        console.log('record.json 파일 읽기 실패:', jsonError.message);
     }
 
     // 통계 데이터에서 사용자 정보 확인 (캐시 적용)
@@ -1027,25 +1044,44 @@ async function fetchUserData(username) {
         }
     }
 
-    // record.json이 없으면 record.md 파일 시도
-    try {
-        const response = await fetch(`https://api.github.com/repos/${username}/weekly-commit-challenge/contents/record.md`);
+    // record.md API 응답 캐시 확인
+    const recordMdCacheKey = `record_md_${username}`;
+    let recordMdResponse = getCachedData(recordMdCacheKey, 5 * 60 * 1000); // 5분
+    
+    if (!recordMdResponse) {
+        // record.md 파일 시도
+        try {
+            const response = await fetch(`https://api.github.com/repos/${username}/weekly-commit-challenge/contents/record.md`);
+            if (response.ok) {
+                recordMdResponse = await response.json();
+                // API 응답 캐시에 저장
+                setCachedData(recordMdCacheKey, recordMdResponse);
+            }
+        } catch (mdError) {
+            console.log('record.md 파일 없음:', mdError.message);
+        }
+    } else {
+        console.log('캐시에서 record.md API 응답 로드:', username);
+    }
 
-        if (response.ok) {
-            const repoData = await response.json();
-            const content = atob(repoData.content);
+    if (recordMdResponse) {
+        try {
+            const content = atob(recordMdResponse.content);
             const records = parseRecordMd(content);
             const stats = calculateStats(records);
 
-            data = {
+            const data = {
                 username: username,
                 avatarUrl: defaultAvatarUrl,
                 ...stats
             };
+            
+            // 최종 사용자 데이터 캐시에 저장
+            setCachedData(cacheKey, data);
             return data;
+        } catch (parseError) {
+            console.log('record.md 파싱 실패:', parseError.message);
         }
-    } catch (mdError) {
-        console.log('record.md 파일 없음:', mdError.message);
     }
 
     // 두 파일 모두 없는 경우 기본 데이터 반환

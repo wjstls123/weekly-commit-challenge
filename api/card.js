@@ -117,7 +117,8 @@ export default async function handler(req, res) {
     const svg = generateSVGCard(username, stats, theme, defaultAvatarUrl);
 
     res.setHeader('Content-Type', 'image/svg+xml');
-    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=300'); // Cache for 5 minutes
+    res.setHeader('ETag', `"${Buffer.from(username + theme + JSON.stringify(stats)).toString('base64')}"`);
     res.status(200).send(svg);
 
   } catch (error) {
