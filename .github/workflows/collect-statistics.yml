@@ -172,22 +172,22 @@ jobs:
                   // 기존 통계 Issue 찾기
                   const issues = await githubAPI('/repos/tlqhrm/weekly-commit-challenge/issues?labels=statistics&state=open');
                   
-                  const issueBody = `# 📊 Fork 통계 (자동 업데이트)
+                  const issueBody = \`# 📊 Fork 통계 (자동 업데이트)
 
-**마지막 업데이트:** ${new Date().toLocaleString('ko-KR', {timeZone: 'Asia/Seoul'})}
+**마지막 업데이트:** \${new Date().toLocaleString('ko-KR', {timeZone: 'Asia/Seoul'})}
 
 ## JSON 데이터
 
-\`\`\`json
-${JSON.stringify(stats, null, 2)}
-\`\`\`
+\\\`\\\`\\\`json
+\${JSON.stringify(stats, null, 2)}
+\\\`\\\`\\\`
 
 ## 요약
-- 총 참여자: ${stats.totalParticipants}명
-- 활성 참여자: ${stats.activeParticipants}명
-- record.md 보유자: ${stats.recordHolders}명
-- 주간 성공자: ${stats.weeklySuccessful}명
-- 평균 연속 주차: ${stats.averageStreak}주`;
+- 총 참여자: \${stats.totalParticipants}명
+- 활성 참여자: \${stats.activeParticipants}명
+- record.md 보유자: \${stats.recordHolders}명
+- 주간 성공자: \${stats.weeklySuccessful}명
+- 평균 연속 주차: \${stats.averageStreak}주\`;
                   
                   if (issues.length > 0) {
                       // 기존 Issue 업데이트
