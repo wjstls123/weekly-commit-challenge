@@ -12,6 +12,11 @@ jobs:
     if: github.repository == 'tlqhrm/weekly-commit-challenge'
     permissions:
       contents: write
+      issues: write
+      metadata: read
+      pull-requests: read
+      repository-projects: read
+      actions: read
     
     steps:
       - name: Checkout repository
@@ -28,7 +33,7 @@ jobs:
       - name: Collect fork statistics and save to issue
         id: collect_stats
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           node << 'EOF'
           const fs = require('fs');
@@ -165,6 +170,16 @@ jobs:
                       
                       stats.averageStreak = Math.round(totalStreak / stats.participants.length * 10) / 10;
                       stats.averageSuccessRate = Math.round(totalSuccessRate / stats.participants.length * 10) / 10;
+                      
+                      // 랭킹 데이터 생성 (연속 주차 순)
+                      stats.rankingByStreak = [...stats.participants]
+                          .sort((a, b) => b.currentStreak - a.currentStreak)
+                          .slice(0, 10); // 상위 10명만
+                      
+                      // 랭킹 데이터 생성 (성공률 순)  
+                      stats.rankingBySuccessRate = [...stats.participants]
+                          .sort((a, b) => b.successRate - a.successRate)
+                          .slice(0, 10); // 상위 10명만
                   }
                   
                   // Issue에 저장하기 위해 GitHub API 호출

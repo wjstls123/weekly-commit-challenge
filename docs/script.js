@@ -599,6 +599,13 @@ function displayCachedStatistics(stats) {
     if (stats.participants && stats.participants.length > 0) {
         globalRankingData = stats.participants;
         displayRanking('streak');
+    } else if (stats.rankingByStreak && stats.rankingBySuccessRate) {
+        // 새로운 랭킹 데이터 구조 사용
+        globalRankingData = {
+            streak: stats.rankingByStreak,
+            successRate: stats.rankingBySuccessRate
+        };
+        displayCachedRanking('streak');
     }
     
     // 마지막 업데이트 시간 표시 (선택사항)
@@ -621,7 +628,13 @@ function setupRankingFilters() {
             
             // 랭킹 다시 로드
             const filter = button.getAttribute('data-filter');
-            displayRanking(filter);
+            
+            // 데이터 구조에 따라 적절한 함수 호출
+            if (globalRankingData && globalRankingData.streak && globalRankingData.successRate) {
+                displayCachedRanking(filter);
+            } else {
+                displayRanking(filter);
+            }
         });
     });
 }
@@ -711,6 +724,64 @@ function displayRanking(filter) {
             break;
         case 'success-rate':
             sortedData.sort((a, b) => b.successRate - a.successRate);
+            break;
+    }
+    
+    // 랭킹 HTML 생성
+    if (sortedData.length === 0) {
+        rankingList.innerHTML = '<div class="loading">아직 참여자가 없습니다.</div>';
+        return;
+    }
+    
+    rankingList.innerHTML = sortedData.map((user, index) => {
+        const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+        const badgeClass = user.currentWeekSuccess ? 'success' : 'progress';
+        const badgeText = user.currentWeekSuccess ? '성공' : '진행중';
+        
+        let mainStat = '';
+        switch (filter) {
+            case 'streak':
+                mainStat = `${user.currentStreak}주 연속`;
+                break;
+            case 'success-rate':
+                mainStat = `${user.successRate}% 성공률`;
+                break;
+        }
+        
+        return `
+            <div class="ranking-item">
+                <div class="rank-number ${rankClass}">${index + 1}</div>
+                <div class="user-info">
+                    <img src="${user.avatarUrl}" alt="${user.username}" class="user-avatar">
+                    <a href="https://github.com/${user.username}" target="_blank" class="user-name">${user.username}</a>
+                </div>
+                <div class="user-stats">
+                    <span class="badge ${badgeClass}">${badgeText}</span>
+                    <span class="main-stat">${mainStat}</span>
+                    <span class="sub-stat">${filter === 'streak' ? `성공률 ${user.successRate}%` : `연속 ${user.currentStreak}주`}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// 캐시된 랭킹 표시 (새로운 데이터 구조용)
+function displayCachedRanking(filter) {
+    const rankingList = document.getElementById('rankingList');
+    
+    if (!globalRankingData || (!globalRankingData.streak && !globalRankingData.successRate)) {
+        rankingList.innerHTML = '<div class="loading">랭킹 데이터를 수집하는 중...</div>';
+        return;
+    }
+    
+    // 필터에 따라 데이터 선택
+    let sortedData = [];
+    switch (filter) {
+        case 'streak':
+            sortedData = globalRankingData.streak || [];
+            break;
+        case 'success-rate':
+            sortedData = globalRankingData.successRate || [];
             break;
     }
     
