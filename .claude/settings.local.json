@@ -23,7 +23,11 @@
       "Bash(git rm:*)",
       "Bash(git rebase:*)",
       "Bash(./cleanup-duplicates.sh:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git checkout:*)",
+      "Bash(rg:*)",
+      "Bash(sed:*)",
+      "Bash(awk:*)"
     ],
     "deny": []
   }
