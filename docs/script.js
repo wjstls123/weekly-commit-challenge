@@ -320,7 +320,7 @@ function calculateStats(records) {
     };
 }
 
-// 프로필 검색 (GitHub API 기반)
+// 프로필 검색 (캐시 우선 사용)
 async function searchProfile(username) {
     try {
         // 로딩 상태 표시
@@ -328,83 +328,11 @@ async function searchProfile(username) {
 
         console.log(`사용자 검색: ${username}`);
 
-        // 먼저 record.json 파일 시도
-        let data = null;
-        try {
-            console.log('record.json 파일 조회 시도');
-            const jsonResponse = await fetch(`https://api.github.com/repos/${username}/weekly-commit-challenge/contents/record.json`);
+        // fetchUserData 함수 사용 (캐시 포함)
+        const data = await fetchUserData(username);
 
-            if (jsonResponse.ok) {
-                const jsonData = await jsonResponse.json();
-                const jsonContent = atob(jsonData.content);
-                const recordData = JSON.parse(jsonContent);
-                console.log('record.json 데이터:', recordData);
-
-                // 아바타 URL 가져오기
-                const userResponse = await fetch(`https://api.github.com/users/${username}`);
-                const userData = await userResponse.json();
-
-                data = {
-                    username: username,
-                    avatarUrl: userData.avatar_url || recordData.avatarUrl || `https://github.com/${username}.png`,
-                    currentYear: recordData.year,
-                    currentWeek: recordData.weekNumber,
-                    currentWeekCommits: recordData.commitCount,
-                    currentWeekSuccess: recordData.success,
-                    currentStreak: 1, // JSON에는 개별 기록만 있으므로 기본값
-                    maxStreak: 1,
-                    successRate: recordData.success ? 100 : 0,
-                    totalWeeks: 1,
-                    recentRecords: [{
-                        period: recordData.period,
-                        week: `${recordData.year}년 ${recordData.weekNumber}주차`,
-                        commits: recordData.commitCount,
-                        success: recordData.success
-                    }]
-                };
-                console.log('record.json 기반 데이터 생성 완료');
-            }
-        } catch (jsonError) {
-            console.log('record.json 파일 없음 또는 오류:', jsonError.message);
-        }
-
-        // record.json이 없으면 record.md 파일 사용
         if (!data) {
-            console.log('record.md 파일로 fallback');
-            const response = await fetch(`https://api.github.com/repos/${username}/weekly-commit-challenge/contents/record.md`);
-
-            if (!response.ok) {
-                console.log(`API 응답 실패: ${response.status}`);
-                if (response.status === 404) {
-                    throw new Error('해당 사용자의 weekly-commit-challenge 레포지토리나 record 파일을 찾을 수 없습니다. 아직 참여하지 않았거나 사용자명이 잘못되었을 수 있습니다.');
-                } else {
-                    throw new Error(`GitHub API 요청 실패 (${response.status}): ${response.statusText}`);
-                }
-            }
-
-            const repoData = await response.json();
-            console.log('record.md 데이터 조회 성공');
-
-            // Base64 디코딩
-            const content = atob(repoData.content);
-            console.log('record.md 내용:', content.substring(0, 200) + '...');
-
-            // record.md 파싱
-            const records = parseRecordMd(content);
-            console.log('파싱된 기록:', records);
-
-            const stats = calculateStats(records);
-            console.log('계산된 통계:', stats);
-
-            // 아바타 URL 가져오기 (GitHub API)
-            const userResponse = await fetch(`https://api.github.com/users/${username}`);
-            const userData = await userResponse.json();
-
-            data = {
-                username: username,
-                avatarUrl: userData.avatar_url || `https://github.com/${username}.png`,
-                ...stats
-            };
+            throw new Error('해당 사용자의 weekly-commit-challenge 레포지토리나 record 파일을 찾을 수 없습니다. 아직 참여하지 않았거나 사용자명이 잘못되었을 수 있습니다.');
         }
 
         console.log('최종 데이터:', data);
