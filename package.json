@@ -1,0 +1,17 @@
+{
+  "name": "weekly-commit-challenge-cards",
+  "version": "1.0.0",
+  "description": "SVG cards for Weekly Commit Challenge stats",
+  "main": "api/card.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@vercel/node": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -238,10 +238,12 @@ jobs:
                   
                   // 평균 연속 주차 및 성공률 계산
                   if (stats.participants.length > 0) {
-                      const totalStreak = stats.participants.reduce((sum, p) => sum + p.currentStreak, 0);
+                      // 연속 주차가 0이 아닌 참여자들만으로 평균 계산 (실패한 사람 제외)
+                      const activeParticipants = stats.participants.filter(p => p.currentStreak > 0);
+                      const totalStreak = activeParticipants.reduce((sum, p) => sum + p.currentStreak, 0);
                       const totalSuccessRate = stats.participants.reduce((sum, p) => sum + p.successRate, 0);
                       
-                      stats.averageStreak = Math.round(totalStreak / stats.participants.length * 10) / 10;
+                      stats.averageStreak = activeParticipants.length > 0 ? Math.round(totalStreak / activeParticipants.length * 10) / 10 : 0;
                       stats.averageSuccessRate = Math.round(totalSuccessRate / stats.participants.length * 10) / 10;
                       
                       // 랭킹 데이터 생성 (연속 주차 순)

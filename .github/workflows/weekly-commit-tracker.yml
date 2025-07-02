@@ -224,7 +224,67 @@ jobs:
               TODAY_STATUS_EMOJI="🔄 진행중 ($TODAY_COMMIT_COUNT개)"
             fi
             
-            echo '{"period":"'$THIS_WEEK_PERIOD'","periodType":"이번주","dateRange":"'$TODAY_DATE' ~ '$TODAY_DATE'","year":'$YEAR',"weekNumber":'$THIS_WEEK_NUM',"commitCount":'$TODAY_COMMIT_COUNT',"success":'$TODAY_SUCCESS',"status":"'$TODAY_STATUS_EMOJI'","lastUpdated":"'$(TZ='Asia/Seoul' date -Iseconds)'","username":"${{ github.repository_owner }}","avatarUrl":"'$AVATAR_URL'"}' > record.json
+            # record.json에 전체 기록 포함
+            {
+              echo '{'
+              echo '  "username": "${{ github.repository_owner }}",'
+              echo '  "avatarUrl": "'$AVATAR_URL'",'
+              echo '  "lastUpdated": "'$(TZ='Asia/Seoul' date -Iseconds)'",'
+              echo '  "records": ['
+              
+              # 기존 기록들 추가
+              if [ -f record.md.bak ]; then
+                first_record=true
+                while IFS= read -r line; do
+                  if [[ "$line" == "|"*"|"*"|"*"|"* && "$line" != *"기간"* && "$line" != *"---"* ]]; then
+                    if [ "$first_record" = false ]; then echo '    ,'; fi
+                    parts=($(echo "$line" | tr '|' ' '))
+                    period="${parts[1]// /}"
+                    week="${parts[2]// /}"
+                    commits="${parts[3]// /}"
+                    status="${parts[4]// /}"
+                    success="false"
+                    if [[ "$status" == *"✅"* && "$status" != *"🔄"* ]]; then
+                      success="true"
+                    fi
+                    echo '    {'
+                    echo '      "period": "'$period'",'
+                    echo '      "week": "'$week'",'
+                    echo '      "commits": '$commits','
+                    echo '      "success": '$success','
+                    echo '      "status": "'$status'"'
+                    echo -n '    }'
+                    first_record=false
+                  fi
+                done < record.md.bak
+                echo ','
+              fi
+              
+              # 지난주 기록 추가
+              echo '    {'
+              echo '      "period": "'$WEEK_PERIOD'",'
+              echo '      "week": "'${YEAR}년 ${WEEK_NUM}주차'",'
+              echo '      "commits": '$COMMIT_COUNT','
+              echo '      "success": '$SUCCESS','
+              echo '      "status": "'$STATUS_EMOJI'"'
+              echo '    },'
+              
+              # 이번주 기록 추가
+              echo '    {'
+              echo '      "period": "'$THIS_WEEK_PERIOD'",'
+              echo '      "week": "'${YEAR}년 ${THIS_WEEK_NUM}주차'",'
+              echo '      "commits": '$TODAY_COMMIT_COUNT','
+              echo '      "success": '$TODAY_SUCCESS','
+              echo '      "status": "'$TODAY_STATUS_EMOJI'"'
+              echo '    }'
+              echo '  ]'
+              echo '}'
+            } > record.json
+            
+            # 기존 record.md 백업
+            if [ -f record.md ]; then
+              cp record.md record.md.bak
+            fi
             
             # record.md에 두 기록 모두 포함 (오름차순: 오래된 것이 위로)
             {
@@ -234,13 +294,71 @@ jobs:
               echo ""
               echo "| 기간 | 주차 | 커밋 수 | 성공 여부 |"
               echo "| --- | --- | --- | --- |"
-              echo "| $WEEK_PERIOD | ${YEAR}년 ${WEEK_NUM}주차 | $COMMIT_COUNT | $STATUS_EMOJI |"
-              echo "| $THIS_WEEK_PERIOD | ${YEAR}년 ${THIS_WEEK_NUM}주차 | $TODAY_COMMIT_COUNT | $TODAY_STATUS_EMOJI |"
             } > record.md
             
+            # 기존 기록이 있다면 추가 (오름차순 유지)
+            if [ -f record.md.bak ]; then
+              # 기존 데이터 추출하여 추가
+              grep "^|.*|.*|.*|.*|$" record.md.bak | grep -v "기간\|---" >> record.md || true
+            fi
+            
+            # 새 기록들 추가 (지난주 먼저, 이번주 나중에)
+            echo "| $WEEK_PERIOD | ${YEAR}년 ${WEEK_NUM}주차 | $COMMIT_COUNT | $STATUS_EMOJI |" >> record.md
+            echo "| $THIS_WEEK_PERIOD | ${YEAR}년 ${THIS_WEEK_NUM}주차 | $TODAY_COMMIT_COUNT | $TODAY_STATUS_EMOJI |" >> record.md
+            
           else
-            # 화~일요일: 단일 기록
-            echo '{"period":"'$WEEK_PERIOD'","periodType":"'$PERIOD_TYPE'","dateRange":"'$PERIOD_START' ~ '$PERIOD_END'","year":'$YEAR',"weekNumber":'$WEEK_NUM',"commitCount":'$COMMIT_COUNT',"success":'$SUCCESS',"status":"'$STATUS_EMOJI'","lastUpdated":"'$(TZ='Asia/Seoul' date -Iseconds)'","username":"${{ github.repository_owner }}","avatarUrl":"'$AVATAR_URL'"}' > record.json
+            # 화~일요일: 전체 기록 포함
+            {
+              echo '{'
+              echo '  "username": "${{ github.repository_owner }}",'
+              echo '  "avatarUrl": "'$AVATAR_URL'",'
+              echo '  "lastUpdated": "'$(TZ='Asia/Seoul' date -Iseconds)'",'
+              echo '  "records": ['
+              
+              # 기존 기록들 추가
+              if [ -f record.md.bak ]; then
+                first_record=true
+                while IFS= read -r line; do
+                  if [[ "$line" == "|"*"|"*"|"*"|"* && "$line" != *"기간"* && "$line" != *"---"* ]]; then
+                    if [ "$first_record" = false ]; then echo '    ,'; fi
+                    parts=($(echo "$line" | tr '|' ' '))
+                    period="${parts[1]// /}"
+                    week="${parts[2]// /}"
+                    commits="${parts[3]// /}"
+                    status="${parts[4]// /}"
+                    success="false"
+                    if [[ "$status" == *"✅"* && "$status" != *"🔄"* ]]; then
+                      success="true"
+                    fi
+                    echo '    {'
+                    echo '      "period": "'$period'",'
+                    echo '      "week": "'$week'",'
+                    echo '      "commits": '$commits','
+                    echo '      "success": '$success','
+                    echo '      "status": "'$status'"'
+                    echo -n '    }'
+                    first_record=false
+                  fi
+                done < record.md.bak
+                echo ','
+              fi
+              
+              # 현재 기록 추가
+              echo '    {'
+              echo '      "period": "'$WEEK_PERIOD'",'
+              echo '      "week": "'${YEAR}년 ${WEEK_NUM}주차'",'
+              echo '      "commits": '$COMMIT_COUNT','
+              echo '      "success": '$SUCCESS','
+              echo '      "status": "'$STATUS_EMOJI'"'
+              echo '    }'
+              echo '  ]'
+              echo '}'
+            } > record.json
+            
+            # 기존 record.md 백업
+            if [ -f record.md ]; then
+              cp record.md record.md.bak
+            fi
             
             {
               echo "# ${{ github.repository_owner }} - Weekly Commit Challenge Record"
@@ -249,8 +367,16 @@ jobs:
               echo ""
               echo "| 기간 | 주차 | 커밋 수 | 성공 여부 |"
               echo "| --- | --- | --- | --- |"
-              echo "| $WEEK_PERIOD | ${YEAR}년 ${WEEK_NUM}주차 | $COMMIT_COUNT | $STATUS_EMOJI |"
             } > record.md
+            
+            # 기존 기록이 있다면 추가 (오름차순 유지)
+            if [ -f record.md.bak ]; then
+              # 기존 데이터 추출하여 추가
+              grep "^|.*|.*|.*|.*|$" record.md.bak | grep -v "기간\|---" >> record.md || true
+            fi
+            
+            # 새 기록 추가
+            echo "| $WEEK_PERIOD | ${YEAR}년 ${WEEK_NUM}주차 | $COMMIT_COUNT | $STATUS_EMOJI |" >> record.md
           fi
 
       - name: Commit changes

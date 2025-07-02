@@ -5,19 +5,17 @@ document.addEventListener('DOMContentLoaded', () => {
     initProfileSearch();
     initSampleTabs();
     setupRankingFilters();
+    loadSavedProfile();
 });
 
 // 즉시 실행으로 더 빠르게 표시
 updateCurrentChallenge();
-loadForkStatistics();
 
-// 현재 챌린지 정보 업데이트 (한국 시간 기준)
+// 현재 챌린지 정보 업데이트 (클라이언트 로컬 시간 기준)
 function updateCurrentChallenge() {
-    // 한국 시간 기준으로 현재 시간 계산
+    // 클라이언트 로컬 시간 사용
     const now = new Date();
-    const kstOffset = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
-    const kstNow = new Date(now.getTime() + kstOffset);
-    const year = kstNow.getFullYear();
+    const year = now.getFullYear();
 
     // ISO 8601 주차 계산 (월요일이 주의 시작)
     function getWeekNumber(date) {
@@ -49,8 +47,8 @@ function updateCurrentChallenge() {
         };
     }
 
-    const weekNumber = getWeekNumber(kstNow);
-    const weekDates = getWeekDates(kstNow);
+    const weekNumber = getWeekNumber(now);
+    const weekDates = getWeekDates(now);
 
     // 날짜 포맷팅
     const formatDate = (date) => {
@@ -59,8 +57,8 @@ function updateCurrentChallenge() {
 
     const weekPeriod = `${formatDate(weekDates.start)} ~ ${formatDate(weekDates.end)}`;
 
-    // 현재 요일 확인 (0: 일요일, 1: 월요일, ...) - 한국 시간 기준
-    const dayOfWeek = kstNow.getDay();
+    // 현재 요일 확인 (0: 일요일, 1: 월요일, ...) - 로컬 시간 기준
+    const dayOfWeek = now.getDay();
     const daysUntilMonday = dayOfWeek === 0 ? 1 : (8 - dayOfWeek) % 7;
 
     // 달력 아이콘 고정
@@ -69,9 +67,9 @@ function updateCurrentChallenge() {
         badgeIcon.textContent = '🗓️';
     }
 
-    console.log(`현재 날짜 (KST): ${kstNow.toLocaleDateString('ko-KR')} ${kstNow.toLocaleTimeString('ko-KR')}`)
+    console.log(`현재 날짜 (로컬): ${now.toLocaleDateString('ko-KR')} ${now.toLocaleTimeString('ko-KR')}`)
     console.log(`계산된 주차: ${year}년 ${weekNumber}주차 (${weekPeriod})`)
-    console.log(`현재 요일: ${dayOfWeek} (0=일요일, KST 기준)`);
+    console.log(`현재 요일: ${dayOfWeek} (0=일요일, 로컬 기준)`);
 
     const challengeBadge = document.getElementById('currentChallenge');
     const badgeText = challengeBadge.querySelector('.badge-text');
@@ -181,6 +179,10 @@ function showProfileUI(data) {
                 <span class="stat-value">${data.maxStreak || data.currentStreak}주</span>
             </div>
             <div class="stat-item">
+                <span class="stat-label">성공률</span>
+                <span class="stat-value">${data.successRate || 0}%</span>
+            </div>
+            <div class="stat-item">
                 <span class="stat-label">총 참여 주차</span>
                 <span class="stat-value">${data.totalWeeks}주</span>
             </div>
@@ -241,15 +243,13 @@ function parseRecordMd(content) {
     }
 
     console.log('파싱 완료 - 총 기록 수:', records.length);
-    return records.reverse(); // 최신순으로 정렬
+    return records; // 오름차순 유지 (오래된 것이 먼저)
 }
 
 // 통계 계산
 function calculateStats(records) {
-    // 한국 시간 기준으로 현재 시간 계산
+    // 클라이언트 로컬 시간 사용
     const now = new Date();
-    const kstOffset = 9 * 60 * 60 * 1000;
-    const kstNow = new Date(now.getTime() + kstOffset);
 
     // ISO 8601 주차 계산 함수
     function getWeekNumber(date) {
@@ -263,8 +263,8 @@ function calculateStats(records) {
 
     if (records.length === 0) {
         return {
-            currentYear: kstNow.getFullYear(),
-            currentWeek: getWeekNumber(kstNow),
+            currentYear: now.getFullYear(),
+            currentWeek: getWeekNumber(now),
             currentWeekCommits: 0,
             currentWeekSuccess: false,
             currentStreak: 0,
@@ -273,20 +273,20 @@ function calculateStats(records) {
         };
     }
 
-    const currentYear = kstNow.getFullYear();
-    const currentWeek = getWeekNumber(kstNow);
+    const currentYear = now.getFullYear();
+    const currentWeek = getWeekNumber(now);
 
     // 현재 주차 데이터 찾기 (최신 기록을 현재 주차로 가정)
-    const currentWeekData = records[0];
+    const currentWeekData = records[records.length - 1];
 
     // 연속 성공 주차 계산 (진행중은 제외)
     let currentStreak = 0;
     let maxStreak = 0;
     let tempStreak = 0;
     
-    // 현재 연속 주차 계산 (최신부터)
-    for (const record of records) {
-        if (record.success) {
+    // 현재 연속 주차 계산 (최신부터 역순으로)
+    for (let i = records.length - 1; i >= 0; i--) {
+        if (records[i].success) {
             currentStreak++;
         } else {
             break;
@@ -294,7 +294,7 @@ function calculateStats(records) {
     }
     
     // 최장 연속 주차 계산 (전체 기록에서)
-    for (const record of records.reverse()) {
+    for (const record of records) {
         if (record.success) {
             tempStreak++;
             maxStreak = Math.max(maxStreak, tempStreak);
@@ -303,6 +303,10 @@ function calculateStats(records) {
         }
     }
 
+    // 성공률 계산
+    const successWeeks = records.filter(record => record.success).length;
+    const successRate = records.length > 0 ? Math.round((successWeeks / records.length) * 100 * 10) / 10 : 0;
+
     return {
         currentYear,
         currentWeek,
@@ -310,8 +314,9 @@ function calculateStats(records) {
         currentWeekSuccess: currentWeekData?.success || false,
         currentStreak,
         maxStreak,
+        successRate,
         totalWeeks: records.length,
-        recentRecords: records.reverse().slice(0, 10) // 다시 reverse해서 최신순으로
+        recentRecords: records.slice(-10).reverse() // 최근 10개를 최신순으로
     };
 }
 
@@ -347,6 +352,8 @@ async function searchProfile(username) {
                     currentWeekCommits: recordData.commitCount,
                     currentWeekSuccess: recordData.success,
                     currentStreak: 1, // JSON에는 개별 기록만 있으므로 기본값
+                    maxStreak: 1,
+                    successRate: recordData.success ? 100 : 0,
                     totalWeeks: 1,
                     recentRecords: [{
                         period: recordData.period,
@@ -404,6 +411,9 @@ async function searchProfile(username) {
 
         // 성공 시 프로필 UI 표시
         showProfileUI(data);
+        
+        // 로컬스토리지에 사용자명 저장
+        localStorage.setItem('weekly-commit-username', username);
 
     } catch (error) {
         console.error('프로필 검색 오류:', error);
@@ -477,6 +487,16 @@ async function loadForkStatistics() {
 
         console.log('Fork 통계 로드 시작...');
 
+        // 캐시에서 통계 데이터 확인 (5분 캐시)
+        const statsCacheKey = 'fork_statistics';
+        let stats = getCachedData(statsCacheKey, 5 * 60 * 1000); // 5분
+        
+        if (stats) {
+            console.log('캐시에서 통계 데이터 로드');
+            displayCachedStatistics(stats);
+            return;
+        }
+
         // Issue에서 통계 데이터 조회
         try {
             const response = await fetch('https://api.github.com/repos/tlqhrm/weekly-commit-challenge/issues?labels=statistics&state=open');
@@ -491,8 +511,12 @@ async function loadForkStatistics() {
                     const jsonMatch = issue.body.match(/```json\\n([\s\S]*?)\\n```/) || issue.body.match(/```json\n([\s\S]*?)\n```/);
                     if (jsonMatch) {
                         console.log('JSON 데이터 추출 성공');
-                        const stats = JSON.parse(jsonMatch[1]);
+                        stats = JSON.parse(jsonMatch[1]);
                         console.log('Issue에서 통계 데이터 로드 성공:', stats);
+                        
+                        // 캐시에 저장
+                        setCachedData(statsCacheKey, stats);
+                        
                         displayCachedStatistics(stats);
                         return;
                     } else {
@@ -508,8 +532,8 @@ async function loadForkStatistics() {
         }
 
         // Issue 데이터가 없는 경우 기본값 설정
-        document.getElementById('totalParticipants').textContent = '0';
-        document.getElementById('weeklySuccessful').textContent = '0';
+        document.getElementById('totalParticipants').textContent = '0명';
+        document.getElementById('weeklySuccessful').textContent = '0명';
         document.getElementById('averageSuccessRate').textContent = '0%';
         document.getElementById('averageStreak').textContent = '0';
         document.getElementById('rankingList').innerHTML = '<div class="loading">통계 데이터를 불러올 수 없습니다. GitHub Actions 워크플로우가 실행되기를 기다려주세요.</div>';
@@ -527,11 +551,10 @@ async function loadForkStatistics() {
 
 
 
-
 // 캐시된 통계 표시
 function displayCachedStatistics(stats) {
-    document.getElementById('totalParticipants').textContent = stats.totalParticipants || 0;
-    document.getElementById('weeklySuccessful').textContent = stats.weeklySuccessful || 0;
+    document.getElementById('totalParticipants').textContent = (stats.totalParticipants || 0) + '명';
+    document.getElementById('weeklySuccessful').textContent = (stats.weeklySuccessful || 0) + '명';
     document.getElementById('averageSuccessRate').textContent = (stats.averageSuccessRate || 0) + '%';
     document.getElementById('averageStreak').textContent = (stats.averageStreak || 0) + '주';
 
@@ -594,9 +617,17 @@ function setupRankingFilters() {
 }
 
 
+// 페이지네이션을 위한 전역 변수
+let currentPage = 1;
+const itemsPerPage = 10;
+let currentRankingData = [];
+let currentFilter = 'streak';
+
 // 랭킹 표시
-function displayRanking(filter) {
+function displayRanking(filter, page = 1) {
     const rankingList = document.getElementById('rankingList');
+    currentFilter = filter;
+    currentPage = page;
 
     if (!globalRankingData || globalRankingData.length === 0) {
         rankingList.innerHTML = '<div class="loading">랭킹 데이터가 없습니다. GitHub Actions 워크플로우가 실행되기를 기다려주세요.</div>';
@@ -615,50 +646,68 @@ function displayRanking(filter) {
             break;
     }
 
+    // 최대 100명으로 제한
+    sortedData = sortedData.slice(0, 100);
+    currentRankingData = sortedData;
+
+    // 페이지네이션 계산
+    const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageData = sortedData.slice(startIndex, endIndex);
+
     // 랭킹 HTML 생성
-    if (sortedData.length === 0) {
+    if (pageData.length === 0) {
         rankingList.innerHTML = '<div class="loading">아직 참여자가 없습니다.</div>';
         return;
     }
 
-    rankingList.innerHTML = sortedData.map((user, index) => {
-        const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+    const rankingHTML = pageData.map((user, index) => {
+        const actualIndex = startIndex + index;
+        const rankClass = actualIndex === 0 ? 'gold' : actualIndex === 1 ? 'silver' : actualIndex === 2 ? 'bronze' : '';
         const badgeClass = user.currentWeekSuccess ? 'success' : 'progress';
         const badgeText = user.currentWeekSuccess ? '성공' : '진행중';
 
         let mainStat = '';
         switch (filter) {
             case 'streak':
-                mainStat = `${user.currentStreak}주 연속`;
+                mainStat = `${user.currentStreak}주`;
                 break;
             case 'success-rate':
-                mainStat = `${user.successRate}% 성공률`;
+                mainStat = `${user.successRate}%`;
                 break;
             case 'max-streak':
-                mainStat = `${user.maxStreak || 0}주 최장연속`;
+                mainStat = `${user.maxStreak || 0}주`;
                 break;
         }
 
         return `
-            <div class="ranking-item">
-                <div class="rank-number ${rankClass}">${index + 1}</div>
+            <div class="ranking-item" onclick="toggleRankingDetail('${user.username}', ${actualIndex})" style="cursor: pointer;">
+                <div class="rank-number ${rankClass}">${actualIndex + 1}</div>
                 <div class="user-info">
                     <img src="${user.avatarUrl}" alt="${user.username}" class="user-avatar">
-                    <a href="https://github.com/${user.username}" target="_blank" class="user-name">${user.username}</a>
+                    <span class="user-name">${user.username}</span>
                 </div>
                 <div class="user-stats">
                     <span class="badge ${badgeClass}">${badgeText}</span>
                     <span class="main-stat">${mainStat}</span>
-                    <span class="sub-stat">${filter === 'streak' ? `성공률 ${user.successRate}%` : `연속 ${user.currentStreak}주`}</span>
                 </div>
             </div>
+            <div id="ranking-detail-${actualIndex}" class="ranking-detail" style="display: none;"></div>
         `;
     }).join('');
+
+    // 페이지네이션 HTML 생성
+    const paginationHTML = generatePagination(totalPages, page);
+    
+    rankingList.innerHTML = rankingHTML + paginationHTML;
 }
 
 // 캐시된 랭킹 표시 (새로운 데이터 구조용)
-function displayCachedRanking(filter) {
+function displayCachedRanking(filter, page = 1) {
     const rankingList = document.getElementById('rankingList');
+    currentFilter = filter;
+    currentPage = page;
 
     if (!globalRankingData || (!globalRankingData.streak && !globalRankingData.successRate)) {
         rankingList.innerHTML = '<div class="loading">랭킹 데이터를 수집하는 중...</div>';
@@ -679,43 +728,439 @@ function displayCachedRanking(filter) {
             break;
     }
 
+    // 최대 100명으로 제한
+    sortedData = sortedData.slice(0, 100);
+    currentRankingData = sortedData;
+
+    // 페이지네이션 계산
+    const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageData = sortedData.slice(startIndex, endIndex);
+
     // 랭킹 HTML 생성
-    if (sortedData.length === 0) {
+    if (pageData.length === 0) {
         rankingList.innerHTML = '<div class="loading">아직 참여자가 없습니다.</div>';
         return;
     }
 
-    rankingList.innerHTML = sortedData.map((user, index) => {
-        const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+    const rankingHTML = pageData.map((user, index) => {
+        const actualIndex = startIndex + index;
+        const rankClass = actualIndex === 0 ? 'gold' : actualIndex === 1 ? 'silver' : actualIndex === 2 ? 'bronze' : '';
         const badgeClass = user.currentWeekSuccess ? 'success' : 'progress';
         const badgeText = user.currentWeekSuccess ? '성공' : '진행중';
 
         let mainStat = '';
         switch (filter) {
             case 'streak':
-                mainStat = `${user.currentStreak}주 연속`;
+                mainStat = `${user.currentStreak}주`;
                 break;
             case 'success-rate':
-                mainStat = `${user.successRate}% 성공률`;
+                mainStat = `${user.successRate}%`;
                 break;
             case 'max-streak':
-                mainStat = `${user.maxStreak || 0}주 최장연속`;
+                mainStat = `${user.maxStreak || 0}주`;
                 break;
         }
 
         return `
-            <div class="ranking-item">
-                <div class="rank-number ${rankClass}">${index + 1}</div>
+            <div class="ranking-item" onclick="toggleRankingDetail('${user.username}', ${actualIndex})" style="cursor: pointer;">
+                <div class="rank-number ${rankClass}">${actualIndex + 1}</div>
                 <div class="user-info">
                     <img src="${user.avatarUrl}" alt="${user.username}" class="user-avatar">
-                    <a href="https://github.com/${user.username}" target="_blank" class="user-name">${user.username}</a>
+                    <span class="user-name">${user.username}</span>
                 </div>
                 <div class="user-stats">
                     <span class="badge ${badgeClass}">${badgeText}</span>
                     <span class="main-stat">${mainStat}</span>
-                    <span class="sub-stat">${filter === 'streak' ? `성공률 ${user.successRate}%` : `연속 ${user.currentStreak}주`}</span>
                 </div>
             </div>
+            <div id="ranking-detail-${actualIndex}" class="ranking-detail" style="display: none;"></div>
         `;
     }).join('');
+
+    // 페이지네이션 HTML 생성
+    const paginationHTML = generatePagination(totalPages, page);
+    
+    rankingList.innerHTML = rankingHTML + paginationHTML;
+}
+
+// 페이지네이션 HTML 생성
+function generatePagination(totalPages, currentPage) {
+    if (totalPages <= 1) return '';
+
+    let paginationHTML = '<div class="pagination">';
+    
+    // 이전 버튼
+    if (currentPage > 1) {
+        paginationHTML += `<button class="page-btn" onclick="changePage(${currentPage - 1})">‹</button>`;
+    }
+    
+    // 페이지 번호들
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+    
+    if (startPage > 1) {
+        paginationHTML += `<button class="page-btn" onclick="changePage(1)">1</button>`;
+        if (startPage > 2) {
+            paginationHTML += '<span class="page-dots">...</span>';
+        }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const activeClass = i === currentPage ? 'active' : '';
+        paginationHTML += `<button class="page-btn ${activeClass}" onclick="changePage(${i})">${i}</button>`;
+    }
+    
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationHTML += '<span class="page-dots">...</span>';
+        }
+        paginationHTML += `<button class="page-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
+    }
+    
+    // 다음 버튼
+    if (currentPage < totalPages) {
+        paginationHTML += `<button class="page-btn" onclick="changePage(${currentPage + 1})">›</button>`;
+    }
+    
+    paginationHTML += '</div>';
+    return paginationHTML;
+}
+
+// 페이지 변경
+function changePage(page) {
+    if (globalRankingData && globalRankingData.streak && globalRankingData.successRate) {
+        displayCachedRanking(currentFilter, page);
+    } else if (globalRankingData && Array.isArray(globalRankingData)) {
+        displayRanking(currentFilter, page);
+    }
+}
+
+// 랭킹에서 유저 상세정보 토글
+async function toggleRankingDetail(username, rankIndex) {
+    const detailElement = document.getElementById(`ranking-detail-${rankIndex}`);
+    
+    if (detailElement.style.display === 'none') {
+        // 다른 열린 상세정보들 모두 닫기
+        document.querySelectorAll('.ranking-detail').forEach(detail => {
+            detail.style.display = 'none';
+        });
+        
+        // 로딩 표시
+        detailElement.innerHTML = '<div class="loading" style="padding: 20px; text-align: center;">사용자 정보를 불러오는 중...</div>';
+        detailElement.style.display = 'block';
+        
+        try {
+            // 사용자 정보 불러오기
+            const data = await fetchUserData(username);
+            
+            // 상세 정보 HTML 생성
+            const statusText = data.totalWeeks === 0 ? 
+                '⏸️ 아직 참여하지 않음' : 
+                (data.currentWeekSuccess ? '✅ 이번 주 성공' : `🔄 진행중 (${data.currentWeekCommits}개)`);
+            
+            const statusClass = data.totalWeeks === 0 ? 'not-started' : (data.currentWeekSuccess ? 'success' : 'progress');
+
+            detailElement.innerHTML = `
+                <div class="ranking-user-detail">
+                    <div class="detail-header">
+                        <img class="detail-avatar" src="${data.avatarUrl}" alt="${data.username}">
+                        <div class="detail-info">
+                            <h4>${data.username}</h4>
+                            <p class="detail-status ${statusClass}">
+                                ${statusText}
+                            </p>
+                        </div>
+                        <button class="close-detail" onclick="closeRankingDetail(${rankIndex})">×</button>
+                    </div>
+                    
+                    <div class="detail-stats">
+                        <div class="detail-stat-item">
+                            <span class="detail-stat-label">이번 주 커밋</span>
+                            <span class="detail-stat-value">${data.currentWeekCommits}개</span>
+                        </div>
+                        <div class="detail-stat-item">
+                            <span class="detail-stat-label">연속 성공</span>
+                            <span class="detail-stat-value">${data.currentStreak}주</span>
+                        </div>
+                        <div class="detail-stat-item">
+                            <span class="detail-stat-label">최장 연속</span>
+                            <span class="detail-stat-value">${data.maxStreak || 0}주</span>
+                        </div>
+                        <div class="detail-stat-item">
+                            <span class="detail-stat-label">성공률</span>
+                            <span class="detail-stat-value">${data.successRate || 0}%</span>
+                        </div>
+                        <div class="detail-stat-item">
+                            <span class="detail-stat-label">총 참여 주차</span>
+                            <span class="detail-stat-value">${data.totalWeeks}주</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            detailElement.innerHTML = `<div class="error-message" style="padding: 20px; text-align: center; color: #f85149;">정보를 불러올 수 없습니다: ${error.message}</div>`;
+        }
+    } else {
+        detailElement.style.display = 'none';
+    }
+}
+
+// 랭킹 상세정보 닫기
+function closeRankingDetail(rankIndex) {
+    const detailElement = document.getElementById(`ranking-detail-${rankIndex}`);
+    detailElement.style.display = 'none';
+}
+
+// 사용자 데이터 불러오기 (searchProfile에서 분리)
+async function fetchUserData(username) {
+    // 기본 사용자 정보 먼저 가져오기
+    let userData = null;
+    try {
+        const userResponse = await fetch(`https://api.github.com/users/${username}`);
+        if (userResponse.ok) {
+            userData = await userResponse.json();
+        }
+    } catch (userError) {
+        console.log('사용자 정보 조회 실패:', userError);
+    }
+
+    const defaultAvatarUrl = userData?.avatar_url || `https://github.com/${username}.png`;
+
+    // 캐시에서 먼저 확인 (5분 캐시)
+    const cacheKey = `user_data_${username}`;
+    const cachedData = getCachedData(cacheKey, 5 * 60 * 1000); // 5분
+    if (cachedData) {
+        console.log('캐시에서 사용자 데이터 로드:', username);
+        return cachedData;
+    }
+
+    // record.json에서 전체 데이터 가져오기
+    try {
+        const jsonResponse = await fetch(`https://api.github.com/repos/${username}/weekly-commit-challenge/contents/record.json`);
+        if (jsonResponse.ok) {
+            const jsonData = await jsonResponse.json();
+            const jsonContent = atob(jsonData.content);
+            const recordData = JSON.parse(jsonContent);
+            
+            // 전체 기록에서 통계 계산
+            const records = recordData.records || [];
+            const stats = calculateStatsFromRecords(records);
+            const latestRecord = records[records.length - 1];
+            
+            const data = {
+                username: username,
+                avatarUrl: recordData.avatarUrl || defaultAvatarUrl,
+                currentYear: latestRecord?.week?.match(/(\d{4})/)?.[1] || new Date().getFullYear(),
+                currentWeek: latestRecord?.week?.match(/(\d+)주차/)?.[1] || 1,
+                currentWeekCommits: latestRecord?.commits || 0,
+                currentWeekSuccess: latestRecord?.success || false,
+                currentStreak: stats.currentStreak,
+                maxStreak: stats.maxStreak,
+                successRate: stats.successRate,
+                totalWeeks: stats.totalWeeks,
+                recentRecords: records.slice(-5) // 최근 5개 기록
+            };
+            
+            // 캐시에 저장
+            setCachedData(cacheKey, data);
+            return data;
+        }
+    } catch (jsonError) {
+        console.log('record.json 파일 읽기 실패:', jsonError.message);
+    }
+
+    // 통계 데이터에서 사용자 정보 확인 (캐시 적용)
+    const statsCacheKey = `stats_data`;
+    let statsData = getCachedData(statsCacheKey, 5 * 60 * 1000); // 5분
+    
+    if (!statsData) {
+        try {
+            const response = await fetch('https://api.github.com/repos/tlqhrm/weekly-commit-challenge/issues?labels=statistics&state=open');
+            if (response.ok) {
+                const issues = await response.json();
+                if (issues.length > 0) {
+                    const issue = issues[0];
+                    const jsonMatch = issue.body.match(/```json\\n([\s\S]*?)\\n```/) || issue.body.match(/```json\n([\s\S]*?)\n```/);
+                    if (jsonMatch) {
+                        statsData = JSON.parse(jsonMatch[1]);
+                        setCachedData(statsCacheKey, statsData);
+                    }
+                }
+            }
+        } catch (err) {
+            console.log('통계 데이터 조회 실패:', err);
+        }
+    }
+    
+    if (statsData) {
+        const userStats = statsData.participants?.find(p => p.username === username);
+        if (userStats) {
+            const now = new Date();
+            const getWeekNumber = (date) => {
+                const target = new Date(date.valueOf());
+                const dayNr = (target.getDay() + 6) % 7;
+                target.setDate(target.getDate() - dayNr + 3);
+                const jan4 = new Date(target.getFullYear(), 0, 4);
+                const dayDiff = (target - jan4) / 86400000;
+                return Math.ceil(dayDiff / 7);
+            };
+            
+            const data = {
+                username: username,
+                avatarUrl: userStats.avatarUrl || defaultAvatarUrl,
+                currentYear: now.getFullYear(),
+                currentWeek: getWeekNumber(now),
+                currentWeekCommits: userStats.currentWeekSuccess ? 1 : 0,
+                currentWeekSuccess: userStats.currentWeekSuccess,
+                currentStreak: userStats.currentStreak,
+                maxStreak: userStats.maxStreak,
+                successRate: userStats.successRate,
+                totalWeeks: userStats.totalWeeks,
+                recentRecords: []
+            };
+            
+            // 캐시에 저장
+            setCachedData(cacheKey, data);
+            return data;
+        }
+    }
+
+    // record.json이 없으면 record.md 파일 시도
+    try {
+        const response = await fetch(`https://api.github.com/repos/${username}/weekly-commit-challenge/contents/record.md`);
+
+        if (response.ok) {
+            const repoData = await response.json();
+            const content = atob(repoData.content);
+            const records = parseRecordMd(content);
+            const stats = calculateStats(records);
+
+            data = {
+                username: username,
+                avatarUrl: defaultAvatarUrl,
+                ...stats
+            };
+            return data;
+        }
+    } catch (mdError) {
+        console.log('record.md 파일 없음:', mdError.message);
+    }
+
+    // 두 파일 모두 없는 경우 기본 데이터 반환
+    const now = new Date();
+    const getWeekNumber = (date) => {
+        const target = new Date(date.valueOf());
+        const dayNr = (target.getDay() + 6) % 7;
+        target.setDate(target.getDate() - dayNr + 3);
+        const jan4 = new Date(target.getFullYear(), 0, 4);
+        const dayDiff = (target - jan4) / 86400000;
+        return Math.ceil(dayDiff / 7);
+    };
+
+    return {
+        username: username,
+        avatarUrl: defaultAvatarUrl,
+        currentYear: now.getFullYear(),
+        currentWeek: getWeekNumber(now),
+        currentWeekCommits: 0,
+        currentWeekSuccess: false,
+        currentStreak: 0,
+        maxStreak: 0,
+        successRate: 0,
+        totalWeeks: 0,
+        recentRecords: []
+    };
+}
+
+// 로컬스토리지 캐시 함수들
+function getCachedData(key, maxAge) {
+    try {
+        const cached = localStorage.getItem(key);
+        if (cached) {
+            const data = JSON.parse(cached);
+            const now = Date.now();
+            if (now - data.timestamp < maxAge) {
+                return data.value;
+            } else {
+                localStorage.removeItem(key);
+            }
+        }
+    } catch (error) {
+        console.log('캐시 읽기 실패:', error);
+        localStorage.removeItem(key);
+    }
+    return null;
+}
+
+function setCachedData(key, value) {
+    try {
+        const data = {
+            value: value,
+            timestamp: Date.now()
+        };
+        localStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+        console.log('캐시 저장 실패:', error);
+    }
+}
+
+// record.json의 records 배열에서 통계 계산
+function calculateStatsFromRecords(records) {
+    if (!records || records.length === 0) {
+        return {
+            currentStreak: 0,
+            maxStreak: 0,
+            successRate: 0,
+            totalWeeks: 0
+        };
+    }
+
+    let currentStreak = 0;
+    let maxStreak = 0;
+    let tempStreak = 0;
+    let successCount = 0;
+
+    // 현재 연속 주차 계산 (최신부터 역순으로)
+    for (let i = records.length - 1; i >= 0; i--) {
+        if (records[i].success) {
+            currentStreak++;
+        } else {
+            break;
+        }
+    }
+
+    // 최장 연속 주차 및 성공률 계산
+    for (const record of records) {
+        if (record.success) {
+            tempStreak++;
+            maxStreak = Math.max(maxStreak, tempStreak);
+            successCount++;
+        } else {
+            tempStreak = 0;
+        }
+    }
+
+    const successRate = records.length > 0 ? Math.round((successCount / records.length) * 100 * 10) / 10 : 0;
+
+    return {
+        currentStreak,
+        maxStreak,
+        successRate,
+        totalWeeks: records.length
+    };
+}
+
+// 저장된 프로필 로드
+function loadSavedProfile() {
+    const savedUsername = localStorage.getItem('weekly-commit-username');
+    if (savedUsername) {
+        const profileInput = document.getElementById('profileInput');
+        if (profileInput) {
+            profileInput.value = savedUsername;
+            // 자동으로 프로필 검색 실행
+            searchProfile(savedUsername);
+        }
+    }
 }

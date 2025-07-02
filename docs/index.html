@@ -18,7 +18,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>📊 위클리 커밋 챌린지</h1>
+            <h1>🔥 위클리 커밋 챌린지</h1>
             <p class="subtitle">꾸준히 커밋하는 습관을 기록하고 추적해보세요!</p>
             <div class="current-challenge">
                 <span class="challenge-badge" id="currentChallenge">
@@ -96,6 +96,21 @@
                     </div>
                     <p>Fork한 레포지토리의 Actions 탭에서 워크플로우를 활성화하세요.</p>
                     <p class="step-example">Repository → Actions → "I understand my workflows, go ahead and enable them"</p>
+                    <div class="workflow-enable-guide">
+                        <h4>📸 워크플로우 활성화 가이드</h4>
+                        <div class="guide-images">
+                            <div class="guide-step">
+                                <h5>1단계: Actions 활성화 허용</h5>
+                                <img src="../images/allow-action.png" alt="GitHub Actions 활성화 허용" class="guide-image">
+                                <p class="guide-description">"I understand my workflows, go ahead and enable them" 버튼을 클릭하여 Actions를 허용하세요.</p>
+                            </div>
+                            <div class="guide-step">
+                                <h5>2단계: 워크플로우 활성화</h5>
+                                <img src="../images/enable-action.png" alt="워크플로우 활성화 버튼 클릭" class="guide-image">
+                                <p class="guide-description">"Weekly Commit Tracker" 워크플로우의 "Enable workflow" 버튼을 클릭하여 활성화하세요.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="step-vertical">
@@ -184,6 +199,12 @@
                         <ul>
                             <li>본인 계정의 <strong>공개 레포지토리만</strong> 수집</li>
                             <li>weekly-commit-challenge 레포지토리는 제외</li>
+                            <li>봇이 작성한 커밋은 제외 (예: dependabot, renovate 등)</li>
+                        </ul>
+
+                        <h4>통계 및 랭킹 업데이트</h4>
+                        <ul>
+                            <li>통계 데이터와 참여자 랭킹은 <strong>매시간</strong>마다 자동으로 갱신됩니다</li>
                         </ul>
                     </div>
                 </div>
@@ -194,9 +215,6 @@
 
     </div>
 
-    <footer>
-        <p>Made with ❤️ for developers who love consistent commits</p>
-    </footer>
 
     <script src="script.js"></script>
 </body>

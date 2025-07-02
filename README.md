@@ -25,6 +25,36 @@ Fork한 레포지토리의 Actions 탭에서 워크플로우를 활성화하세�
 ## 📊 대시보드 확인
 [챌린지 대시보드](https://tlqhrm.github.io/weekly-commit-challenge/)에서 챌린지 현황을 확인할 수 있습니다.
 
+## 🎨 README 카드
+
+본인의 GitHub README에 위클리 커밋 챌린지 진행 상황을 카드로 표시할 수 있습니다:
+
+```markdown
+![Weekly Commit Challenge](https://weekly-commit-challenge.vercel.app/api/card?username=YOUR_USERNAME)
+```
+
+### 테마 옵션
+
+다양한 테마를 선택할 수 있습니다:
+
+```markdown
+<!-- 기본 다크 테마 -->
+![Weekly Commit Challenge](https://weekly-commit-challenge.vercel.app/api/card?username=YOUR_USERNAME&theme=default)
+
+<!-- 라이트 테마 -->
+![Weekly Commit Challenge](https://weekly-commit-challenge.vercel.app/api/card?username=YOUR_USERNAME&theme=light)
+
+<!-- GitHub 다크 테마 -->
+![Weekly Commit Challenge](https://weekly-commit-challenge.vercel.app/api/card?username=YOUR_USERNAME&theme=github_dark)
+```
+
+카드에는 다음 정보가 표시됩니다:
+- 현재 연속 주차
+- 최장 연속 주차  
+- 총 참여 주차
+- 성공률
+- 현재 진행 상태
+
 
 ## 🏆 챌린지 규칙
 

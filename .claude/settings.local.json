@@ -15,7 +15,9 @@
       "Bash(git pull:*)",
       "Bash(git stash:*)",
       "Bash(yamllint:*)",
-      "Bash(gh workflow run:*)"
+      "Bash(gh workflow run:*)",
+      "Bash(grep:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }

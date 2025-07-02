@@ -1607,3 +1607,227 @@ footer {
     background: #2ea043;
     transform: translateY(-2px);
 }
+
+/* 페이지네이션 스타일 */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 20px 0;
+}
+
+.page-btn {
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    min-width: 40px;
+}
+
+.page-btn:hover {
+    background: #30363d;
+    border-color: #58a6ff;
+}
+
+.page-btn.active {
+    background: #1f6feb;
+    border-color: #1f6feb;
+    color: white;
+}
+
+.page-dots {
+    color: #8b949e;
+    padding: 0 4px;
+    font-size: 14px;
+}
+
+/* 워크플로우 활성화 가이드 스타일 */
+.workflow-enable-guide {
+    margin-top: 20px;
+    padding: 20px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+}
+
+.workflow-enable-guide h4 {
+    margin: 0 0 20px 0;
+    color: #58a6ff;
+    font-size: 1.1em;
+    text-align: center;
+}
+
+.guide-images {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.guide-step {
+    text-align: center;
+}
+
+.guide-step h5 {
+    margin: 0 0 15px 0;
+    color: #e6edf3;
+    font-size: 1em;
+    font-weight: 600;
+}
+
+.guide-image {
+    max-width: 100%;
+    height: auto;
+    border: 2px solid #30363d;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.guide-image:hover {
+    border-color: #58a6ff;
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(88, 166, 255, 0.2);
+}
+
+.guide-description {
+    margin: 0;
+    color: #8b949e;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+@media (min-width: 768px) {
+    .guide-images {
+        flex-direction: row;
+        gap: 30px;
+    }
+    
+    .guide-step {
+        flex: 1;
+    }
+}
+
+/* 랭킹 상세정보 스타일 */
+.ranking-detail {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    margin: 10px 0;
+    animation: fadeIn 0.3s ease;
+}
+
+.ranking-user-detail {
+    padding: 20px;
+}
+
+.detail-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.detail-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid #58a6ff;
+}
+
+.detail-info h4 {
+    margin: 0 0 5px 0;
+    color: #e6edf3;
+    font-size: 1.2em;
+}
+
+.detail-status {
+    margin: 0;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.detail-status.success {
+    background: #2ea04320;
+    color: #2ea043;
+    border: 1px solid #2ea043;
+}
+
+.detail-status.progress {
+    background: #ffa50020;
+    color: #ffa500;
+    border: 1px solid #ffa500;
+}
+
+.close-detail {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.close-detail:hover {
+    background: #f85149;
+    border-color: #f85149;
+    color: white;
+}
+
+.detail-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.detail-stat-item {
+    text-align: center;
+    padding: 12px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+}
+
+.detail-stat-label {
+    display: block;
+    font-size: 11px;
+    color: #8b949e;
+    margin-bottom: 6px;
+}
+
+.detail-stat-value {
+    display: block;
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #58a6ff;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
