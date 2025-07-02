@@ -182,21 +182,21 @@ function showProfileUI(data) {
             </div>
             <div class="card-import-section">
                 <p style="font-size: 13px; color: #586069; margin: 0 0 10px 0;">
-                    <strong>README에 배지 추가하기:</strong>
+                    <strong>README에 카드 추가하기:</strong>
                 </p>
                 
                 <div>
-                    <label style="font-size: 12px; color: #586069; display: block; margin-bottom: 5px;">Markdown 코드 (클릭하면 실시간 카드 페이지로 이동):</label>
+                    <label style="font-size: 12px; color: #586069; display: block; margin-bottom: 5px;">실시간 동적 카드:</label>
                     <div class="import-url">
                         <input type="text" readonly 
-                               value='[![Weekly Commit Challenge](https://img.shields.io/badge/Weekly%20Commit%20Challenge-Click%20to%20View-blue)](https://tlqhrm.github.io/weekly-commit-challenge/card-proxy.html?username=${data.username})'
-                               id="badgeCode-${data.username}">
-                        <button onclick="copyToClipboard('badgeCode-${data.username}')">복사</button>
+                               value='![Weekly Commit Challenge](https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=${data.username})'
+                               id="cloudflareCode-${data.username}">
+                        <button onclick="copyToClipboard('cloudflareCode-${data.username}')">복사</button>
                     </div>
                 </div>
                 
                 <p style="font-size: 11px; color: #8b949e; margin: 10px 0 0 0;">
-                    🖱️ 클릭 시 실시간 카드 보기 | ⚡ 실시간 업데이트 | 📱 GitHub README 완벽 지원
+                    🚀 GitHub README에서 바로 표시 | ⚡ 실시간 업데이트 | 🌍 전 세계 CDN
                 </p>
             </div>
         </div>
