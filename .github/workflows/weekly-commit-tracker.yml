@@ -334,20 +334,30 @@ jobs:
                 first_record=true
                 while IFS= read -r line; do
                   if [[ "$line" == "|"*"|"*"|"*"|"* && "$line" != *"기간"* && "$line" != *"---"* ]]; then
-                    parts=($(echo "$line" | tr '|' ' '))
-                    # ID 컬럼이 있는지 확인 (5개 컬럼이면 ID 있음, 4개면 없음)
-                    if [ ${#parts[@]} -eq 6 ]; then
-                      # ID 포함 (| ID | 기간 | 주차 | 커밋 수 | 성공 여부 |)
-                      period="${parts[2]// /}"
-                      week="${parts[3]// /}"
-                      commits="${parts[4]// /}"
-                      status="${parts[5]// /}"
+                    # 파이프(|)로 구분된 필드를 올바르게 추출
+                    IFS='|' read -ra fields <<< "$line"
+                    # 빈 필드 제거하고 트림
+                    trimmed_fields=()
+                    for field in "${fields[@]}"; do
+                      trimmed=$(echo "$field" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                      if [ -n "$trimmed" ]; then
+                        trimmed_fields+=("$trimmed")
+                      fi
+                    done
+                    
+                    # ID 컬럼이 있는지 확인
+                    if [ ${#trimmed_fields[@]} -eq 5 ]; then
+                      # ID 포함 (ID | 기간 | 주차 | 커밋 수 | 성공 여부)
+                      period="${trimmed_fields[1]}"
+                      week="${trimmed_fields[2]}"
+                      commits="${trimmed_fields[3]}"
+                      status="${trimmed_fields[4]}"
                     else
-                      # ID 없음 (| 기간 | 주차 | 커밋 수 | 성공 여부 |)
-                      period="${parts[1]// /}"
-                      week="${parts[2]// /}"
-                      commits="${parts[3]// /}"
-                      status="${parts[4]// /}"
+                      # ID 없음 (기간 | 주차 | 커밋 수 | 성공 여부)
+                      period="${trimmed_fields[0]}"
+                      week="${trimmed_fields[1]}"
+                      commits="${trimmed_fields[2]}"
+                      status="${trimmed_fields[3]}"
                     fi
                     
                     if [ "$first_record" = false ]; then echo '    ,'; fi
@@ -410,20 +420,30 @@ jobs:
               # 기존 데이터 추출하여 추가 (ID 포함)
               while IFS= read -r line; do
                 if [[ "$line" == "|"*"|"*"|"*"|"* && "$line" != *"ID"* && "$line" != *"---"* ]]; then
-                  parts=($(echo "$line" | tr '|' ' '))
+                  # 파이프(|)로 구분된 필드를 올바르게 추출
+                  IFS='|' read -ra fields <<< "$line"
+                  # 빈 필드 제거하고 트림
+                  trimmed_fields=()
+                  for field in "${fields[@]}"; do
+                    trimmed=$(echo "$field" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                    if [ -n "$trimmed" ]; then
+                      trimmed_fields+=("$trimmed")
+                    fi
+                  done
+                  
                   # ID 컬럼이 있는지 확인
-                  if [ ${#parts[@]} -eq 6 ]; then
-                    # ID 이미 있음 - 새 ID로 교체
-                    period="${parts[2]// /}"
-                    week="${parts[3]// /}"
-                    commits="${parts[4]// /}"
-                    status="${parts[5]// /}"
+                  if [ ${#trimmed_fields[@]} -eq 5 ]; then
+                    # ID 포함 (ID | 기간 | 주차 | 커밋 수 | 성공 여부)
+                    period="${trimmed_fields[1]}"
+                    week="${trimmed_fields[2]}"
+                    commits="${trimmed_fields[3]}"
+                    status="${trimmed_fields[4]}"
                   else
-                    # ID 없음 - 추가
-                    period="${parts[1]// /}"
-                    week="${parts[2]// /}"
-                    commits="${parts[3]// /}"
-                    status="${parts[4]// /}"
+                    # ID 없음 (기간 | 주차 | 커밋 수 | 성공 여부)
+                    period="${trimmed_fields[0]}"
+                    week="${trimmed_fields[1]}"
+                    commits="${trimmed_fields[2]}"
+                    status="${trimmed_fields[3]}"
                   fi
                   
                   
@@ -453,20 +473,30 @@ jobs:
                 while IFS= read -r line; do
                   if [[ "$line" == "|"*"|"*"|"*"|"* && "$line" != *"기간"* && "$line" != *"---"* ]]; then
                     if [ "$first_record" = false ]; then echo '    ,'; fi
-                    parts=($(echo "$line" | tr '|' ' '))
-                    # ID 컬럼이 있는지 확인 (5개 컬럼이면 ID 있음, 4개면 없음)
-                    if [ ${#parts[@]} -eq 6 ]; then
-                      # ID 포함 (| ID | 기간 | 주차 | 커밋 수 | 성공 여부 |)
-                      period="${parts[2]// /}"
-                      week="${parts[3]// /}"
-                      commits="${parts[4]// /}"
-                      status="${parts[5]// /}"
+                    # 파이프(|)로 구분된 필드를 올바르게 추출
+                    IFS='|' read -ra fields <<< "$line"
+                    # 빈 필드 제거하고 트림
+                    trimmed_fields=()
+                    for field in "${fields[@]}"; do
+                      trimmed=$(echo "$field" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                      if [ -n "$trimmed" ]; then
+                        trimmed_fields+=("$trimmed")
+                      fi
+                    done
+                    
+                    # ID 컬럼이 있는지 확인
+                    if [ ${#trimmed_fields[@]} -eq 5 ]; then
+                      # ID 포함 (ID | 기간 | 주차 | 커밋 수 | 성공 여부)
+                      period="${trimmed_fields[1]}"
+                      week="${trimmed_fields[2]}"
+                      commits="${trimmed_fields[3]}"
+                      status="${trimmed_fields[4]}"
                     else
-                      # ID 없음 (| 기간 | 주차 | 커밋 수 | 성공 여부 |)
-                      period="${parts[1]// /}"
-                      week="${parts[2]// /}"
-                      commits="${parts[3]// /}"
-                      status="${parts[4]// /}"
+                      # ID 없음 (기간 | 주차 | 커밋 수 | 성공 여부)
+                      period="${trimmed_fields[0]}"
+                      week="${trimmed_fields[1]}"
+                      commits="${trimmed_fields[2]}"
+                      status="${trimmed_fields[3]}"
                     fi
                     success="false"
                     if [[ "$status" == *"✅"* && "$status" != *"🔄"* ]]; then
@@ -517,20 +547,30 @@ jobs:
               # 기존 데이터 추출하여 추가 (ID 포함)
               while IFS= read -r line; do
                 if [[ "$line" == "|"*"|"*"|"*"|"* && "$line" != *"ID"* && "$line" != *"---"* ]]; then
-                  parts=($(echo "$line" | tr '|' ' '))
+                  # 파이프(|)로 구분된 필드를 올바르게 추출
+                  IFS='|' read -ra fields <<< "$line"
+                  # 빈 필드 제거하고 트림
+                  trimmed_fields=()
+                  for field in "${fields[@]}"; do
+                    trimmed=$(echo "$field" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                    if [ -n "$trimmed" ]; then
+                      trimmed_fields+=("$trimmed")
+                    fi
+                  done
+                  
                   # ID 컬럼이 있는지 확인
-                  if [ ${#parts[@]} -eq 6 ]; then
-                    # ID 이미 있음 - 새 ID로 교체
-                    period="${parts[2]// /}"
-                    week="${parts[3]// /}"
-                    commits="${parts[4]// /}"
-                    status="${parts[5]// /}"
+                  if [ ${#trimmed_fields[@]} -eq 5 ]; then
+                    # ID 포함 (ID | 기간 | 주차 | 커밋 수 | 성공 여부)
+                    period="${trimmed_fields[1]}"
+                    week="${trimmed_fields[2]}"
+                    commits="${trimmed_fields[3]}"
+                    status="${trimmed_fields[4]}"
                   else
-                    # ID 없음 - 추가
-                    period="${parts[1]// /}"
-                    week="${parts[2]// /}"
-                    commits="${parts[3]// /}"
-                    status="${parts[4]// /}"
+                    # ID 없음 (기간 | 주차 | 커밋 수 | 성공 여부)
+                    period="${trimmed_fields[0]}"
+                    week="${trimmed_fields[1]}"
+                    commits="${trimmed_fields[2]}"
+                    status="${trimmed_fields[3]}"
                   fi
                   echo "| $NEXT_ID | $period | $week | $commits | $status |" >> record.md
                   NEXT_ID=$((NEXT_ID + 1))
