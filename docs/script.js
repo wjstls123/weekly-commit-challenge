@@ -176,9 +176,9 @@ function showProfileUI(data) {
         <div class="profile-card-section">
             <h4>내 실시간 프로필 카드</h4>
             <div class="card-preview">
-                <iframe src="card-proxy.html?username=${data.username}" 
-                        width="400" height="130" frameborder="0"
-                        style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></iframe>
+                <img src="https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=${data.username}" 
+                     alt="Weekly Commit Challenge Card"
+                     style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); background: transparent;">
             </div>
             <div class="card-import-section">
                 <p style="font-size: 13px; color: #586069; margin: 0 0 10px 0;">

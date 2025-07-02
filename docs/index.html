@@ -214,10 +214,71 @@
             </div>
         </section>
 
+        <section class="card-embedding">
+            <h2>🎨 README에 카드 추가하기</h2>
+            <div class="embedding-content">
+                <div class="embedding-intro">
+                    <p>GitHub 프로필 README에 실시간으로 업데이트되는 예쁜 카드를 추가해보세요!</p>
+                </div>
+                
+                <div class="embedding-example">
+                    <div class="example-card">
+                        <h3>📋 사용법</h3>
+                        <div class="code-block">
+                            <pre><code>![Weekly Commit Challenge](https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=YOUR_USERNAME)</code></pre>
+                            <button class="copy-btn" onclick="copyToClipboard('embedding-example')">복사</button>
+                        </div>
+                    </div>
+                    
+                    <div class="example-result">
+                        <h3>🎯 결과 예시</h3>
+                        <div class="card-demo">
+                            <img src="https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=tlqhrm" 
+                                 alt="Weekly Commit Challenge Card Example"
+                                 style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="embedding-features">
+                    <div class="feature-grid">
+                        <div class="feature-item">
+                            <span class="feature-icon">🚀</span>
+                            <h4>진짜 실시간</h4>
+                            <p>record.json 업데이트 즉시 반영</p>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">📱</span>
+                            <h4>GitHub README 완벽 지원</h4>
+                            <p>실제 이미지로 렌더링</p>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">⚡</span>
+                            <h4>초고속</h4>
+                            <p>전 세계 CDN으로 빠른 로딩</p>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🎨</span>
+                            <h4>성과별 색상 변화</h4>
+                            <p>연속 주차에 따른 동적 색상</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
 
     </div>
 
 
+    <script>
+        function copyToClipboard(elementId) {
+            const text = "![Weekly Commit Challenge](https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=YOUR_USERNAME)";
+            navigator.clipboard.writeText(text).then(() => {
+                alert('코드가 복사되었습니다! YOUR_USERNAME을 본인의 GitHub 사용자명으로 바꿔주세요.');
+            });
+        }
+    </script>
     <script src="script.js"></script>
 </body>
 </html>

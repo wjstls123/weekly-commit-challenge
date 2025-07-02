@@ -47,6 +47,13 @@ GitHub README에 다음 코드를 추가하면 실시간으로 업데이트되�
 ![Weekly Commit Challenge](https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=YOUR_USERNAME)
 ```
 
+### 📋 예시:
+```markdown
+![Weekly Commit Challenge](https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=tlqhrm)
+```
+
+![Weekly Commit Challenge](https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=tlqhrm)
+
 **특징:**
 - 🚀 **진짜 실시간**: record.json 업데이트 즉시 반영
 - 📱 **GitHub README 완벽 지원**: 실제 이미지로 렌더링
