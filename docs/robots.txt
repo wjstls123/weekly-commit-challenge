@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://tlqhrm.github.io/weekly-commit-challenge/sitemap.xml
+
+# 크롤러 최적화
+Crawl-delay: 1
