@@ -3,7 +3,7 @@
 ## 📊 JSON Data
 
 ```json
-{"period":"06/30 ~ 07/06","year":2025,"weekNumber":26,"commitCount":1,"success":true,"status":"✅ 성공","lastUpdated":"2025-07-02T00:21:22+09:00","username":"tlqhrm","avatarUrl":"https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4"}
+{"period":"06/30 ~ 07/06","year":2025,"weekNumber":26,"commitCount":1,"success":true,"status":"✅ 성공","lastUpdated":"2025-07-02T09:14:44+09:00","username":"tlqhrm","avatarUrl":"https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4"}
 ```
 
 ## 📊 기록 테이블
