@@ -13,9 +13,7 @@ jobs:
     permissions:
       contents: write
       issues: write
-      metadata: read
       pull-requests: read
-      repository-projects: read
       actions: read
     
     steps:
