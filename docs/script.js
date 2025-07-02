@@ -147,6 +147,7 @@ function showErrorMessage(message) {
 
 // 성공 시 프로필 UI 표시
 function showProfileUI(data) {
+    console.log('showProfileUI 받은 데이터:', data);
     const profileResult = document.getElementById('profileResult');
     profileResult.style.display = 'block';
 
@@ -868,7 +869,7 @@ async function fetchUserData(username) {
     const cacheKey = `user_data_${username}`;
     const cachedData = getCachedData(cacheKey, 5 * 60 * 1000); // 5분
     if (cachedData) {
-        console.log('캐시에서 사용자 데이터 로드:', username);
+        console.log('캐시에서 사용자 데이터 로드:', username, cachedData);
         return cachedData;
     }
 
@@ -918,6 +919,7 @@ async function fetchUserData(username) {
             
             // 최종 사용자 데이터 캐시에 저장
             setCachedData(cacheKey, data);
+            console.log('record.json에서 생성한 최종 데이터:', data);
             return data;
         } catch (parseError) {
             console.log('record.json 파싱 실패:', parseError.message);
@@ -976,6 +978,7 @@ async function fetchUserData(username) {
             
             // 캐시에 저장
             setCachedData(cacheKey, data);
+            console.log('통계 데이터에서 생성한 최종 데이터:', data);
             return data;
         }
     }
@@ -1014,6 +1017,7 @@ async function fetchUserData(username) {
             
             // 최종 사용자 데이터 캐시에 저장
             setCachedData(cacheKey, data);
+            console.log('record.json에서 생성한 최종 데이터:', data);
             return data;
         } catch (parseError) {
             console.log('record.md 파싱 실패:', parseError.message);
