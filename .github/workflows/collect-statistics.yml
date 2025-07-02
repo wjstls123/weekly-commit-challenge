@@ -102,8 +102,16 @@ jobs:
                       page++;
                   }
                   
+                  // 원본 레포지토리도 포함
+                  const originalRepo = await githubAPI('/repos/tlqhrm/weekly-commit-challenge');
+                  allForks.unshift({
+                      owner: { login: 'tlqhrm', avatar_url: originalRepo.owner.avatar_url },
+                      name: 'weekly-commit-challenge',
+                      pushed_at: originalRepo.pushed_at
+                  });
+                  
                   stats.totalParticipants = allForks.length;
-                  console.log(`총 ${allForks.length}개의 fork 발견`);
+                  console.log(`총 ${allForks.length}개의 레포지토리 발견 (원본 포함)`);
                   
                   // 각 fork의 record.md 확인 (배치 처리)
                   for (let i = 0; i < allForks.length; i += 5) {
@@ -128,6 +136,7 @@ jobs:
                                           avatarUrl: recordData.avatarUrl || fork.owner.avatar_url,
                                           lastPushed: fork.pushed_at,
                                           currentStreak: recordData.success ? 1 : 0,
+                                          maxStreak: recordData.success ? 1 : 0,
                                           totalWeeks: 1,
                                           successRate: recordData.success ? 100 : 0,
                                           currentWeekSuccess: recordData.success
@@ -155,15 +164,44 @@ jobs:
                                       let successWeeks = 0;
                                       let currentWeekSuccess = false;
                                       
-                                      // 간단한 파싱
+                                      // 상세한 파싱으로 최장 연속 주차 계산
+                                      const records = [];
                                       for (const line of lines) {
                                           if (line.includes('|') && !line.includes('---') && !line.includes('기간')) {
                                               totalWeeks++;
-                                              if (line.includes('✅')) {
+                                              const isSuccess = line.includes('✅');
+                                              records.push({ success: isSuccess });
+                                              
+                                              if (isSuccess) {
                                                   successWeeks++;
                                                   if (totalWeeks === 1) currentWeekSuccess = true;
-                                                  if (currentStreak === totalWeeks - 1) currentStreak++;
                                               }
+                                          }
+                                      }
+                                      
+                                      // 현재 연속 주차 및 최장 연속 주차 계산
+                                      let maxStreak = 0;
+                                      currentStreak = 0;
+                                      let tempStreak = 0;
+                                      
+                                      // 최신부터 역순으로 현재 연속 계산
+                                      for (let i = 0; i < records.length; i++) {
+                                          if (records[i].success) {
+                                              if (i === 0) currentStreak++;
+                                              else if (currentStreak === i) currentStreak++;
+                                              else break;
+                                          } else {
+                                              break;
+                                          }
+                                      }
+                                      
+                                      // 전체에서 최장 연속 계산
+                                      for (const record of records) {
+                                          if (record.success) {
+                                              tempStreak++;
+                                              maxStreak = Math.max(maxStreak, tempStreak);
+                                          } else {
+                                              tempStreak = 0;
                                           }
                                       }
                                       
@@ -177,6 +215,7 @@ jobs:
                                           avatarUrl: fork.owner.avatar_url,
                                           lastPushed: fork.pushed_at,
                                           currentStreak,
+                                          maxStreak,
                                           totalWeeks,
                                           successRate,
                                           currentWeekSuccess
@@ -213,6 +252,11 @@ jobs:
                       // 랭킹 데이터 생성 (성공률 순)  
                       stats.rankingBySuccessRate = [...stats.participants]
                           .sort((a, b) => b.successRate - a.successRate)
+                          .slice(0, 20); // 상위 20명만
+                      
+                      // 랭킹 데이터 생성 (최장 연속 주차 순)
+                      stats.rankingByMaxStreak = [...stats.participants]
+                          .sort((a, b) => b.maxStreak - a.maxStreak)
                           .slice(0, 20); // 상위 20명만
                   }
                   

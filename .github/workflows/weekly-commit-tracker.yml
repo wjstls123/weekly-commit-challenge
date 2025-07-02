@@ -34,13 +34,15 @@ jobs:
           EXCLUDED_REPOS="weekly-commit-challenge"
           
           if [ "$CURRENT_WEEKDAY" -eq 1 ]; then
+            # 월요일: 지난주 월요일~일요일 (완료된 주)
             WEEK_START=$(TZ='Asia/Seoul' date -d '7 days ago' '+%Y-%m-%d')
             WEEK_END=$(TZ='Asia/Seoul' date -d '1 day ago' '+%Y-%m-%d')
             PERIOD_TYPE="지난주"
           else
+            # 화~일요일: 이번주 월요일~오늘 (진행중인 주)
             DAYS_SINCE_MONDAY=$((CURRENT_WEEKDAY - 1))
             WEEK_START=$(TZ='Asia/Seoul' date -d "$DAYS_SINCE_MONDAY days ago" '+%Y-%m-%d')
-            WEEK_END=$(TZ='Asia/Seoul' date -d '1 day ago' '+%Y-%m-%d')
+            WEEK_END=$(TZ='Asia/Seoul' date '+%Y-%m-%d')
             PERIOD_TYPE="이번주"
           fi
           
@@ -118,6 +120,57 @@ jobs:
           echo "week_number=$WEEK_NUMBER" >> $GITHUB_OUTPUT
           echo "Year: $YEAR, Week: $WEEK_NUMBER (KST 기준)"
 
+      - name: Check today commits (Monday only)
+        id: check_today
+        if: steps.check_commits.outputs.period_type == '지난주'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          USERNAME="${{ github.repository_owner }}"
+          EXCLUDED_REPOS="weekly-commit-challenge"
+          
+          # 오늘(월요일) 데이터 수집
+          TODAY=$(TZ='Asia/Seoul' date '+%Y-%m-%d')
+          
+          echo "Collecting today's commits: $TODAY"
+          
+          # 한국 시간을 UTC로 변환
+          SINCE_DATE_UTC=$(TZ='UTC' date -d "$TODAY 00:00:00 KST" -Iseconds)
+          UNTIL_DATE_UTC=$(TZ='UTC' date -d "$TODAY 23:59:59 KST" -Iseconds)
+          
+          # GraphQL 쿼리 생성
+          echo '{\"query\":\"query($username: String!, $from: DateTime!, $to: DateTime!) { user(login: $username) { avatarUrl contributionsCollection(from: $from, to: $to) { totalCommitContributions commitContributionsByRepository { repository { name owner { login } } contributions { totalCount } } } } }\",\"variables\":{\"username\":\"'$USERNAME'\",\"from\":\"'$SINCE_DATE_UTC'\",\"to\":\"'$UNTIL_DATE_UTC'\"}}' > /tmp/today_query.json
+          
+          # GraphQL API 호출
+          GRAPHQL_RESPONSE=$(curl -s -X POST \
+            -H \"Authorization: bearer $GITHUB_TOKEN\" \
+            -H \"Content-Type: application/json\" \
+            -d @/tmp/today_query.json \
+            \"https://api.github.com/graphql\")
+          
+          # 커밋 수 계산
+          TODAY_COMMIT_COUNT=$(echo \"$GRAPHQL_RESPONSE\" | jq --arg excluded \"$EXCLUDED_REPOS\" '
+            .data.user.contributionsCollection.commitContributionsByRepository
+            | map(select(.repository.name as $repo_name | ($excluded | split(\",\") | index($repo_name) | not)))
+            | map(.contributions.totalCount)
+            | add // 0
+          ')
+          
+          if [ -z \"$TODAY_COMMIT_COUNT\" ] || [ \"$TODAY_COMMIT_COUNT\" = \"null\" ]; then
+            TODAY_COMMIT_COUNT=0
+          fi
+          
+          echo "Today's commit count: $TODAY_COMMIT_COUNT"
+          
+          echo "today_commit_count=$TODAY_COMMIT_COUNT" >> $GITHUB_OUTPUT
+          echo "today_date=$TODAY" >> $GITHUB_OUTPUT
+          
+          if [ $TODAY_COMMIT_COUNT -gt 0 ]; then
+            echo "today_success=true" >> $GITHUB_OUTPUT
+          else
+            echo "today_success=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Update record.md
         run: |
           COMMIT_COUNT="${{ steps.check_commits.outputs.commit_count }}"
@@ -125,6 +178,7 @@ jobs:
           WEEK_NUM="${{ steps.week_number.outputs.week_number }}"
           PERIOD_START="${{ steps.check_commits.outputs.period_start }}"
           PERIOD_END="${{ steps.check_commits.outputs.period_end }}"
+          PERIOD_TYPE="${{ steps.check_commits.outputs.period_type }}"
           YEAR=$(TZ='Asia/Seoul' date '+%Y')
           
           # 주차 기간 계산
@@ -144,31 +198,82 @@ jobs:
           # 아바타 URL 가져오기
           AVATAR_URL="${{ steps.check_commits.outputs.avatar_url }}"
           
-          # JSON 데이터 생성
-          echo '{"period":"'$WEEK_PERIOD'","year":'$YEAR',"weekNumber":'$WEEK_NUM',"commitCount":'$COMMIT_COUNT',"success":'$SUCCESS',"status":"'$STATUS_EMOJI'","lastUpdated":"'$(TZ='Asia/Seoul' date -Iseconds)'","username":"${{ github.repository_owner }}","avatarUrl":"'$AVATAR_URL'"}' > record.json
-          
-          # record.md 생성 (JSON 부분 제거)
-          {
-            echo "# ${{ github.repository_owner }} - Weekly Commit Challenge Record"
-            echo ""
-            echo "## 📊 기록 테이블"
-            echo ""
-            echo "| 기간 | 주차 | 커밋 수 | 성공 여부 |"
-            echo "| --- | --- | --- | --- |"
-            echo "| $WEEK_PERIOD | ${YEAR}년 ${WEEK_NUM}주차 | $COMMIT_COUNT | $STATUS_EMOJI |"
-          } > record.md
+          # 월요일인지 확인
+          if [ "$PERIOD_TYPE" = "지난주" ]; then
+            # 월요일: 지난주 + 오늘 두 개의 기록 생성
+            
+            # 1. 지난주 기록
+            echo '{"period":"'$WEEK_PERIOD'","periodType":"지난주","dateRange":"'$PERIOD_START' ~ '$PERIOD_END'","year":'$YEAR',"weekNumber":'$WEEK_NUM',"commitCount":'$COMMIT_COUNT',"success":'$SUCCESS',"status":"'$STATUS_EMOJI'","lastUpdated":"'$(TZ='Asia/Seoul' date -Iseconds)'","username":"${{ github.repository_owner }}","avatarUrl":"'$AVATAR_URL'"}' > record_last_week.json
+            
+            # 2. 오늘(이번주) 기록 
+            TODAY_COMMIT_COUNT="${{ steps.check_today.outputs.today_commit_count }}"
+            TODAY_SUCCESS="${{ steps.check_today.outputs.today_success }}"
+            TODAY_DATE="${{ steps.check_today.outputs.today_date }}"
+            
+            # 이번주 주차 계산
+            THIS_WEEK_NUM=$((WEEK_NUM + 1))
+            
+            # 이번주 기간 계산 (월요일~일요일)
+            THIS_MONDAY=$(TZ='Asia/Seoul' date '+%m/%d')
+            THIS_SUNDAY=$(TZ='Asia/Seoul' date -d '+6 days' '+%m/%d')
+            THIS_WEEK_PERIOD="$THIS_MONDAY ~ $THIS_SUNDAY"
+            
+            if [ "$TODAY_SUCCESS" = "true" ]; then
+              TODAY_STATUS_EMOJI="✅ 성공"
+            else
+              TODAY_STATUS_EMOJI="🔄 진행중 ($TODAY_COMMIT_COUNT개)"
+            fi
+            
+            echo '{"period":"'$THIS_WEEK_PERIOD'","periodType":"이번주","dateRange":"'$TODAY_DATE' ~ '$TODAY_DATE'","year":'$YEAR',"weekNumber":'$THIS_WEEK_NUM',"commitCount":'$TODAY_COMMIT_COUNT',"success":'$TODAY_SUCCESS',"status":"'$TODAY_STATUS_EMOJI'","lastUpdated":"'$(TZ='Asia/Seoul' date -Iseconds)'","username":"${{ github.repository_owner }}","avatarUrl":"'$AVATAR_URL'"}' > record.json
+            
+            # record.md에 두 기록 모두 포함 (오름차순: 오래된 것이 위로)
+            {
+              echo "# ${{ github.repository_owner }} - Weekly Commit Challenge Record"
+              echo ""
+              echo "## 📊 기록 테이블"
+              echo ""
+              echo "| 기간 | 주차 | 커밋 수 | 성공 여부 |"
+              echo "| --- | --- | --- | --- |"
+              echo "| $WEEK_PERIOD | ${YEAR}년 ${WEEK_NUM}주차 | $COMMIT_COUNT | $STATUS_EMOJI |"
+              echo "| $THIS_WEEK_PERIOD | ${YEAR}년 ${THIS_WEEK_NUM}주차 | $TODAY_COMMIT_COUNT | $TODAY_STATUS_EMOJI |"
+            } > record.md
+            
+          else
+            # 화~일요일: 단일 기록
+            echo '{"period":"'$WEEK_PERIOD'","periodType":"'$PERIOD_TYPE'","dateRange":"'$PERIOD_START' ~ '$PERIOD_END'","year":'$YEAR',"weekNumber":'$WEEK_NUM',"commitCount":'$COMMIT_COUNT',"success":'$SUCCESS',"status":"'$STATUS_EMOJI'","lastUpdated":"'$(TZ='Asia/Seoul' date -Iseconds)'","username":"${{ github.repository_owner }}","avatarUrl":"'$AVATAR_URL'"}' > record.json
+            
+            {
+              echo "# ${{ github.repository_owner }} - Weekly Commit Challenge Record"
+              echo ""
+              echo "## 📊 기록 테이블"
+              echo ""
+              echo "| 기간 | 주차 | 커밋 수 | 성공 여부 |"
+              echo "| --- | --- | --- | --- |"
+              echo "| $WEEK_PERIOD | ${YEAR}년 ${WEEK_NUM}주차 | $COMMIT_COUNT | $STATUS_EMOJI |"
+            } > record.md
+          fi
 
       - name: Commit changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add record.md record.json
+          # 월요일인 경우 추가 파일도 포함
+          if [ "${{ steps.check_commits.outputs.period_type }}" = "지난주" ]; then
+            git add record.md record.json record_last_week.json
+          else
+            git add record.md record.json
+          fi
           
           if ! git diff --staged --quiet; then
             CURRENT_TIME=$(TZ='Asia/Seoul' date '+%m/%d %H:%M')
-            git commit -m "📊 ${{ steps.week_number.outputs.week_number }}주차 위클리 커밋 챌린지 기록 업데이트 ($CURRENT_TIME)"
+            PERIOD_TYPE="${{ steps.check_commits.outputs.period_type }}"
+            if [ "$PERIOD_TYPE" = "지난주" ]; then
+              git commit -m "📊 ${{ steps.week_number.outputs.week_number }}주차 위클리 커밋 챌린지 기록 업데이트 (월요일: 지난주+이번주) ($CURRENT_TIME)"
+            else
+              git commit -m "📊 ${{ steps.week_number.outputs.week_number }}주차 위클리 커밋 챌린지 기록 업데이트 ($CURRENT_TIME)"
+            fi
             git push
-            echo "✅ record.md, record.json 업데이트 완료"
+            echo "✅ 기록 파일 업데이트 완료"
           else
             echo "ℹ️ 변경사항이 없어 커밋하지 않습니다."
           fi
