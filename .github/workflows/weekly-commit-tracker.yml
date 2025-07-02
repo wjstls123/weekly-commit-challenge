@@ -68,6 +68,19 @@ jobs:
           
           echo "GraphQL Response: $GRAPHQL_RESPONSE"
           
+          # 유저 존재 여부 확인
+          USER_EXISTS=$(echo "$GRAPHQL_RESPONSE" | jq -r '.data.user // null')
+          if [ "$USER_EXISTS" = "null" ]; then
+            echo "❌ GitHub 사용자 '$USERNAME'을 찾을 수 없습니다. 사용자명을 확인해주세요."
+            echo "commit_count=0" >> $GITHUB_OUTPUT
+            echo "period_start=$WEEK_START" >> $GITHUB_OUTPUT
+            echo "period_end=$WEEK_END" >> $GITHUB_OUTPUT
+            echo "period_type=$PERIOD_TYPE" >> $GITHUB_OUTPUT
+            echo "avatar_url=" >> $GITHUB_OUTPUT
+            echo "success=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
           # 유저 아바타 URL 추출
           AVATAR_URL=$(echo "$GRAPHQL_RESPONSE" | jq -r '.data.user.avatarUrl // ""')
           
@@ -147,16 +160,23 @@ jobs:
             -d @/tmp/today_query.json \
             \"https://api.github.com/graphql\")
           
-          # 커밋 수 계산
-          TODAY_COMMIT_COUNT=$(echo \"$GRAPHQL_RESPONSE\" | jq --arg excluded \"$EXCLUDED_REPOS\" '
-            .data.user.contributionsCollection.commitContributionsByRepository
-            | map(select(.repository.name as $repo_name | ($excluded | split(\",\") | index($repo_name) | not)))
-            | map(.contributions.totalCount)
-            | add // 0
-          ')
-          
-          if [ -z \"$TODAY_COMMIT_COUNT\" ] || [ \"$TODAY_COMMIT_COUNT\" = \"null\" ]; then
+          # 유저 존재 여부 확인
+          USER_EXISTS=$(echo \"$GRAPHQL_RESPONSE\" | jq -r '.data.user // null')
+          if [ \"$USER_EXISTS\" = \"null\" ]; then
+            echo \"❌ GitHub 사용자 '$USERNAME'을 찾을 수 없습니다.\"
             TODAY_COMMIT_COUNT=0
+          else
+            # 커밋 수 계산
+            TODAY_COMMIT_COUNT=$(echo \"$GRAPHQL_RESPONSE\" | jq --arg excluded \"$EXCLUDED_REPOS\" '
+              .data.user.contributionsCollection.commitContributionsByRepository
+              | map(select(.repository.name as $repo_name | ($excluded | split(\",\") | index($repo_name) | not)))
+              | map(.contributions.totalCount)
+              | add // 0
+            ')
+            
+            if [ -z \"$TODAY_COMMIT_COUNT\" ] || [ \"$TODAY_COMMIT_COUNT\" = \"null\" ]; then
+              TODAY_COMMIT_COUNT=0
+            fi
           fi
           
           echo "Today's commit count: $TODAY_COMMIT_COUNT"
@@ -611,8 +631,30 @@ jobs:
             else
               git commit -m "📊 ${{ steps.week_number.outputs.week_number }}주차 위클리 커밋 챌린지 기록 업데이트 ($CURRENT_TIME)"
             fi
-            git push
-            echo "✅ 기록 파일 업데이트 완료"
+            
+            # Push 시도 (충돌 시 자동 해결)
+            echo "🔄 변경사항을 원격 저장소에 푸시 중..."
+            if ! git push; then
+              echo "⚠️ Push 실패 - 원격 변경사항과 충돌이 발생했습니다."
+              echo "🔄 원격 변경사항을 가져와서 자동 병합을 시도합니다..."
+              
+              # 원격 변경사항 가져오기
+              git fetch origin master
+              
+              # rebase를 시도하여 충돌 해결
+              if git rebase origin/master; then
+                echo "✅ 자동 rebase 성공"
+                git push
+                echo "✅ 기록 파일 업데이트 완료"
+              else
+                echo "⚠️ Rebase 실패 - 강제 푸시를 시도합니다..."
+                git rebase --abort
+                git push --force-with-lease
+                echo "✅ 강제 푸시로 기록 파일 업데이트 완료"
+              fi
+            else
+              echo "✅ 기록 파일 업데이트 완료"
+            fi
           else
             echo "ℹ️ 변경사항이 없어 커밋하지 않습니다."
           fi

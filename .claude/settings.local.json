@@ -22,7 +22,8 @@
       "Bash(cp:*)",
       "Bash(git rm:*)",
       "Bash(git rebase:*)",
-      "Bash(./cleanup-duplicates.sh:*)"
+      "Bash(./cleanup-duplicates.sh:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }

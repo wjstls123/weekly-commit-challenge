@@ -2362,3 +2362,50 @@ footer {
     justify-content: flex-end;
     flex: 1;
 }
+
+/* 주의사항 섹션 */
+.notice-box {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.notice-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid #21262d;
+}
+
+.notice-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.notice-item:first-child {
+    padding-top: 0;
+}
+
+.notice-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    width: 40px;
+    text-align: center;
+}
+
+.notice-content h4 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #f0f6fc;
+}
+
+.notice-content p {
+    margin: 0;
+    font-size: 14px;
+    color: #8b949e;
+    line-height: 1.5;
+}
