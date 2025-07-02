@@ -310,12 +310,12 @@ jobs:
                 .status = (.status // (if .commits > 0 then "✅ 성공" else "❌ 실패" end))
               ) |
               
-              # 3. weekStart 기준으로 중복 제거 (빈 값은 period로 그룹화)
+              # 3. period 기준으로 중복 제거 (더 확실한 방법)
               .records |= (
-                group_by(if .weekStart != "" then .weekStart else .period end) |
+                group_by(.period) |
                 map(
-                  # 같은 그룹에서 ID가 가장 큰 것 선택 (가장 최신)
-                  max_by(.id // 0)
+                  # 같은 그룹에서 ID가 가장 큰 것 선택, weekStart가 있는 것 우선
+                  max_by([(.weekStart != "" and .weekStart != null), .id // 0])
                 ) |
                 sort_by(.id // 0)
               ) |
