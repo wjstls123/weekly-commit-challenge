@@ -77,6 +77,30 @@ jobs:
           
           echo "📊 이번 주: $WEEK_START ~ $WEEK_END (${YEAR}년 ${WEEK_NUMBER}주차)"
 
+      - name: Initialize Fork user records (early)
+        if: github.repository_owner != 'tlqhrm'
+        run: |
+          USERNAME="${{ github.repository_owner }}"
+          
+          echo "🔄 Fork 사용자 ($USERNAME) 감지 - 조기 초기화"
+          
+          # Fork 사용자 초기화 처리
+          if [ -f record.json ]; then
+            EXISTING_USERNAME=$(cat record.json | jq -r '.username // empty' 2>/dev/null || echo "empty")
+            
+            if [ "$EXISTING_USERNAME" != "$USERNAME" ] && [ "$EXISTING_USERNAME" != "empty" ]; then
+              echo "⚠️ 다른 사용자($EXISTING_USERNAME)의 기록 발견 - 완전 초기화"
+              rm -f record.json record.md
+              echo "✅ 기존 기록 완전 초기화 완료"
+            fi
+          fi
+          
+          # statistics 워크플로우 제거
+          if [ -f .github/workflows/collect-statistics.yml ]; then
+            rm -f .github/workflows/collect-statistics.yml
+            echo "✅ collect-statistics.yml 워크플로우 제거 완료"
+          fi
+
       - name: Check existing records
         id: existing_records
         run: |
@@ -173,6 +197,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -e  # 에러 발생 시 즉시 중단
           USERNAME="${{ github.repository_owner }}"
           WEEK_START="${{ steps.week_range.outputs.week_start }}"
           WEEK_END="${{ steps.week_range.outputs.week_end }}"
@@ -199,14 +224,31 @@ jobs:
           }
           EOF
           
-          # GraphQL API 호출
-          RESPONSE=$(curl -s -X POST \
-            -H "Authorization: bearer $GITHUB_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d @query.json \
-            "https://api.github.com/graphql")
-          
-          echo "📡 GraphQL 응답: $RESPONSE"
+          # GraphQL API 호출 (재시도 로직 포함)
+          for i in {1..3}; do
+            echo "📡 GraphQL API 호출 시도 $i/3"
+            RESPONSE=$(curl -s -X POST \
+              -H "Authorization: bearer $GITHUB_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d @query.json \
+              "https://api.github.com/graphql")
+            
+            # API 응답 유효성 검사
+            if echo "$RESPONSE" | jq -e '.data' >/dev/null 2>&1; then
+              echo "✅ GraphQL API 응답 성공"
+              echo "📡 GraphQL 응답: $RESPONSE"
+              break
+            elif [ $i -eq 3 ]; then
+              echo "❌ GraphQL API 호출 실패 (3회 시도 후): $RESPONSE"
+              echo "avatar_url=" >> $GITHUB_OUTPUT
+              echo "commit_count=0" >> $GITHUB_OUTPUT
+              echo "user_exists=false" >> $GITHUB_OUTPUT
+              exit 1
+            else
+              echo "⚠️ GraphQL API 호출 실패, 재시도 중... ($RESPONSE)"
+              sleep 2
+            fi
+          done
           
           # 사용자 존재 확인
           USER_EXISTS=$(echo "$RESPONSE" | jq -r '.data.user // null')
@@ -239,40 +281,63 @@ jobs:
       - name: Remove duplicates from existing records
         if: steps.skip_check.outputs.should_skip == 'false' && steps.existing_records.outputs.has_records == 'true'
         run: |
-          echo "🧹 기존 기록 중복 제거 중..."
+          echo "🧹 기존 기록 중복 제거 및 정규화 중..."
           
           if [ -f record.json ]; then
             # 원본 개수 확인
             ORIGINAL_COUNT=$(cat record.json | jq '.records | length' 2>/dev/null || echo "0")
+            echo "📊 원본 기록 수: $ORIGINAL_COUNT개"
             
-            # 중복 제거: weekStart 기준으로 마지막 기록만 유지 (weekStart가 없으면 period로 대체)
-            CLEANED_RECORDS=$(cat record.json | jq '
+            # 중복 제거 및 정규화
+            CLEANED_RECORDS=$(cat record.json | jq --arg username "${{ github.repository_owner }}" '
+              # 1. 기본 구조 보장
+              .username = $username |
+              .records = (.records // []) |
+              
+              # 2. 각 기록의 필수 필드 정규화
+              .records |= map(
+                # weekStart가 없으면 period를 키로 사용
+                if .weekStart and .weekStart != "" then
+                  .
+                else
+                  . + {"weekStart": (.period // ""), "weekEnd": (.period // "")}
+                end |
+                
+                # 필수 필드 보장 (ID가 0이면 임시로 큰 수 할당)
+                .id = (if .id and .id > 0 then .id else 9999 end) |
+                .commits = (.commits // 0) |
+                .success = (.success // (.commits > 0)) |
+                .status = (.status // (if .commits > 0 then "✅ 성공" else "❌ 실패" end))
+              ) |
+              
+              # 3. weekStart 기준으로 중복 제거 (빈 값은 period로 그룹화)
               .records |= (
-                map(if .weekStart then . else . + {"weekStart": .period} end) |
-                group_by(.weekStart) | 
-                map(max_by(.id // 0)) |
+                group_by(if .weekStart != "" then .weekStart else .period end) |
+                map(
+                  # 같은 그룹에서 ID가 가장 큰 것 선택 (가장 최신)
+                  max_by(.id // 0)
+                ) |
                 sort_by(.id // 0)
-              )
-            ')
-            
-            # ID 재정렬 (1부터 순차적으로)
-            REINDEXED_RECORDS=$(echo "$CLEANED_RECORDS" | jq '
+              ) |
+              
+              # 4. ID 재정렬 (1부터 순차적으로)
               .records |= (
-                to_entries | 
-                map(.value.id = (.key + 1)) | 
+                to_entries |
+                map(.value.id = (.key + 1)) |
                 map(.value)
               )
             ')
             
-            # 중복 제거 결과 확인
-            CLEANED_COUNT=$(echo "$REINDEXED_RECORDS" | jq '.records | length')
+            # 결과 확인
+            CLEANED_COUNT=$(echo "$CLEANED_RECORDS" | jq '.records | length')
+            echo "🔍 정리 후 기록 수: $CLEANED_COUNT개"
             
             # 변경사항이 있으면 파일 업데이트
-            if [ "$ORIGINAL_COUNT" != "$CLEANED_COUNT" ]; then
-              echo "$REINDEXED_RECORDS" > record.json
-              echo "✅ 중복 제거 완료: $ORIGINAL_COUNT개 → $CLEANED_COUNT개"
+            if [ "$ORIGINAL_COUNT" != "$CLEANED_COUNT" ] || ! echo "$CLEANED_RECORDS" | jq -e '. == '"$(cat record.json)"'' >/dev/null 2>&1; then
+              echo "$CLEANED_RECORDS" > record.json
+              echo "✅ 중복 제거 및 정규화 완료: $ORIGINAL_COUNT개 → $CLEANED_COUNT개"
             else
-              echo "ℹ️ 중복 기록 없음 ($ORIGINAL_COUNT개 유지)"
+              echo "ℹ️ 변경사항 없음 ($ORIGINAL_COUNT개 유지)"
             fi
           fi
 
@@ -308,19 +373,25 @@ jobs:
           echo "기간: $PERIOD (${YEAR}년 ${WEEK_NUMBER}주차)"
           echo "커밋: $COMMIT_COUNT개 ($STATUS)"
           
-          # 새 기록 데이터
-          NEW_RECORD=$(cat << EOF
-          {
-            "id": null,
-            "period": "$PERIOD",
-            "week": "${YEAR}년 ${WEEK_NUMBER}주차",
-            "commits": $COMMIT_COUNT,
-            "status": "$STATUS",
-            "success": $SUCCESS,
-            "weekStart": "$WEEK_START",
-            "weekEnd": "$WEEK_END"
-          }
-          EOF
+          # 새 기록 데이터 (완전한 구조)
+          NEW_RECORD=$(jq -n \
+            --arg period "$PERIOD" \
+            --arg week "${YEAR}년 ${WEEK_NUMBER}주차" \
+            --argjson commits "$COMMIT_COUNT" \
+            --arg status "$STATUS" \
+            --argjson success "$SUCCESS" \
+            --arg weekStart "$WEEK_START" \
+            --arg weekEnd "$WEEK_END" \
+            '{
+              "id": null,
+              "period": $period,
+              "week": $week,
+              "commits": $commits,
+              "status": $status,
+              "success": $success,
+              "weekStart": $weekStart,
+              "weekEnd": $weekEnd
+            }'
           )
           
           if [ "$SHOULD_ADD" = "true" ]; then
@@ -354,15 +425,27 @@ jobs:
             ')
           fi
           
-          # 최종 JSON 생성
-          cat > record.json << EOF
-          {
-            "username": "$USERNAME",
-            "avatarUrl": "$AVATAR_URL",
-            "lastUpdated": "$(TZ='Asia/Seoul' date -Iseconds)",
-            "records": $UPDATED_RECORDS
-          }
-          EOF
+          # 최종 JSON 생성 (안전한 방식)
+          if ! jq -n \
+            --arg username "$USERNAME" \
+            --arg avatarUrl "$AVATAR_URL" \
+            --arg lastUpdated "$(TZ='Asia/Seoul' date -Iseconds)" \
+            --argjson records "$UPDATED_RECORDS" \
+            '{
+              "username": $username,
+              "avatarUrl": $avatarUrl,
+              "lastUpdated": $lastUpdated,
+              "records": $records
+            }' > record.json; then
+            echo "❌ record.json 생성 실패"
+            exit 1
+          fi
+          
+          # JSON 유효성 검사
+          if ! jq empty record.json 2>/dev/null; then
+            echo "❌ 생성된 record.json이 유효하지 않음"
+            exit 1
+          fi
           
           echo "✅ record.json 업데이트 완료"
 
@@ -388,47 +471,6 @@ jobs:
           
           echo "✅ record.md 업데이트 완료"
 
-      - name: Initialize Fork user records
-        if: github.repository_owner != 'tlqhrm'
-        run: |
-          USERNAME="${{ github.repository_owner }}"
-          
-          echo "🔄 Fork 사용자 ($USERNAME) 감지"
-          
-          # Fork 사용자의 기존 record.json 확인 및 초기화
-          if [ -f record.json ]; then
-            EXISTING_USERNAME=$(cat record.json | jq -r '.username // empty')
-            if [ "$EXISTING_USERNAME" != "$USERNAME" ] && [ -n "$EXISTING_USERNAME" ]; then
-              echo "⚠️ 다른 사용자($EXISTING_USERNAME)의 기록 발견 - 완전 초기화 진행"
-              rm -f record.json record.md
-              echo "✅ 기존 기록 완전 초기화 완료"
-            elif [ "$EXISTING_USERNAME" = "$USERNAME" ]; then
-              # 같은 사용자이지만 기록 구조 검증 및 정리
-              echo "🔍 기존 기록 구조 검증 및 정리 중..."
-              CLEANED_RECORDS=$(cat record.json | jq --arg username "$USERNAME" '
-                {
-                  "username": $username,
-                  "avatarUrl": .avatarUrl,
-                  "lastUpdated": .lastUpdated,
-                  "records": (.records // [] | map(
-                    if .weekStart and .weekEnd then
-                      .
-                    else
-                      . + {"weekStart": "", "weekEnd": ""}
-                    end
-                  ))
-                }
-              ')
-              echo "$CLEANED_RECORDS" > record.json
-              echo "✅ 기록 구조 정리 완료"
-            fi
-          fi
-          
-          # Fork 사용자의 statistics 워크플로우 제거
-          if [ -f .github/workflows/collect-statistics.yml ]; then
-            rm -f .github/workflows/collect-statistics.yml
-            echo "✅ collect-statistics.yml 워크플로우 제거 완료"
-          fi
 
       - name: Commit and push changes
         if: steps.skip_check.outputs.should_skip == 'false'
@@ -439,10 +481,9 @@ jobs:
           # 변경된 파일 추가
           git add record.json record.md
           
-          # Fork 사용자의 경우 삭제된 파일들도 추가
+          # Fork 사용자의 경우 삭제된 워크플로우도 추가
           if [ "${{ github.repository_owner }}" != "tlqhrm" ]; then
             git add .github/workflows/ || true
-            git add record.json record.md || true
           fi
           
           # 변경사항이 있는지 확인

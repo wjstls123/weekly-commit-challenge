@@ -1,0 +1,136 @@
+{
+  "testResults": {
+    "forkInit": true,
+    "newWeek": true,
+    "sameWeek": true,
+    "allPassed": true
+  },
+  "timestamp": "2025-07-02T14:34:46.901Z",
+  "scenarios": {
+    "forkInit": {
+      "originalData": {
+        "username": "tlqhrm",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/85216782",
+        "lastUpdated": "2025-07-02T14:01:30.355Z",
+        "records": [
+          {
+            "id": 1,
+            "period": "06/30 ~ 07/06",
+            "week": "2025년 26주차",
+            "commits": 3,
+            "success": true,
+            "status": "✅ 성공",
+            "weekStart": "2025-06-30",
+            "weekEnd": "2025-07-06"
+          }
+        ]
+      },
+      "forkDataWithDuplicates": {
+        "username": "wjstls123",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/218948587",
+        "lastUpdated": "2025-07-02T23:23:33+09:00",
+        "records": [
+          {
+            "period": "06/30 ~ 07/06",
+            "week": "2025년 26주차",
+            "commits": 3,
+            "success": true,
+            "status": "✅ 성공"
+          },
+          {
+            "id": 2,
+            "period": "06/30 ~ 07/06",
+            "week": "2025년 26주차",
+            "commits": 2,
+            "status": "✅ 성공",
+            "success": true,
+            "weekStart": "2025-06-30",
+            "weekEnd": "2025-07-06"
+          }
+        ]
+      }
+    },
+    "newWeek": {
+      "baseData": {
+        "username": "testuser",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/123456",
+        "lastUpdated": "2025-07-02T12:00:00+09:00",
+        "records": [
+          {
+            "id": 1,
+            "period": "06/23 ~ 06/29",
+            "week": "2025년 25주차",
+            "commits": 5,
+            "status": "✅ 성공",
+            "success": true,
+            "weekStart": "2025-06-23",
+            "weekEnd": "2025-06-29"
+          }
+        ]
+      },
+      "updatedData": {
+        "username": "testuser",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/123456",
+        "lastUpdated": "2025-07-02T23:00:00+09:00",
+        "records": [
+          {
+            "id": 1,
+            "period": "06/23 ~ 06/29",
+            "week": "2025년 25주차",
+            "commits": 5,
+            "status": "✅ 성공",
+            "success": true,
+            "weekStart": "2025-06-23",
+            "weekEnd": "2025-06-29"
+          },
+          {
+            "id": 2,
+            "period": "06/30 ~ 07/06",
+            "week": "2025년 26주차",
+            "commits": 3,
+            "status": "✅ 성공",
+            "success": true,
+            "weekStart": "2025-06-30",
+            "weekEnd": "2025-07-06"
+          }
+        ]
+      }
+    },
+    "sameWeek": {
+      "beforeUpdate": {
+        "username": "testuser",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/123456",
+        "lastUpdated": "2025-07-02T12:00:00+09:00",
+        "records": [
+          {
+            "id": 1,
+            "period": "06/30 ~ 07/06",
+            "week": "2025년 26주차",
+            "commits": 2,
+            "status": "✅ 성공",
+            "success": true,
+            "weekStart": "2025-06-30",
+            "weekEnd": "2025-07-06"
+          }
+        ]
+      },
+      "afterUpdate": {
+        "username": "testuser",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/123456",
+        "lastUpdated": "2025-07-02T23:00:00+09:00",
+        "records": [
+          {
+            "id": 1,
+            "period": "06/30 ~ 07/06",
+            "week": "2025년 26주차",
+            "commits": 5,
+            "status": "✅ 성공",
+            "success": true,
+            "weekStart": "2025-06-30",
+            "weekEnd": "2025-07-06"
+          }
+        ]
+      }
+    }
+  }
+}
