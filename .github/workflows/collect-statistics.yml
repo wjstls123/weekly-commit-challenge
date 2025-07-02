@@ -294,43 +294,13 @@ jobs:
                           .slice(0, 20); // 상위 20명만
                   }
                   
-                  // Issue에 저장하기 위해 GitHub API 호출
-                  console.log('Issue에 통계 저장 중...');
+                  // statistics.json 파일로 저장
+                  console.log('statistics.json 파일에 통계 저장 중...');
                   
-                  // 기존 통계 Issue 찾기
-                  const issues = await githubAPI('/repos/tlqhrm/weekly-commit-challenge/issues?labels=statistics&state=open');
-                  
-                  // Issue 본문 생성
-                  const updateTime = new Date().toLocaleString('ko-KR', {timeZone: 'Asia/Seoul'});
+                  // 통계 데이터를 JSON 파일로 저장
                   const jsonData = JSON.stringify(stats, null, 2);
-                  
-                  const issueBody = '# 📊 Fork 통계 (자동 업데이트)\\n\\n' +
-                    '**마지막 업데이트:** ' + updateTime + '\\n\\n' +
-                    '## JSON 데이터\\n\\n' +
-                    '```json\\n' + jsonData + '\\n```\\n\\n' +
-                    '## 요약\\n' +
-                    '- 총 참여자: ' + stats.totalParticipants + '명\\n' +
-                    '- 주간 성공자: ' + stats.weeklySuccessful + '명\\n' +
-                    '- 평균 성공률: ' + stats.averageSuccessRate + '%\\n' +
-                    '- 평균 연속 주차: ' + stats.averageStreak + '주';
-                  
-                  if (issues.length > 0) {
-                      // 기존 Issue 업데이트
-                      const issueNumber = issues[0].number;
-                      await githubAPI(`/repos/tlqhrm/weekly-commit-challenge/issues/${issueNumber}`, 'PATCH', {
-                          title: '📊 Fork 통계 데이터',
-                          body: issueBody
-                      });
-                      console.log(`Issue #${issueNumber} 업데이트 완료`);
-                  } else {
-                      // 새 Issue 생성
-                      const newIssue = await githubAPI('/repos/tlqhrm/weekly-commit-challenge/issues', 'POST', {
-                          title: '📊 Fork 통계 데이터',
-                          body: issueBody,
-                          labels: ['statistics', 'automation']
-                      });
-                      console.log(`새 Issue #${newIssue.number} 생성 완료`);
-                  }
+                  fs.writeFileSync('statistics.json', jsonData);
+                  console.log('statistics.json 파일 저장 완료');
                   
                   console.log('통계 수집 및 저장 완료!');
                   
@@ -342,3 +312,17 @@ jobs:
           
           collectStatistics();
           EOF
+      
+      - name: Commit statistics file
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          git add statistics.json
+          
+          if ! git diff --staged --quiet; then
+            git commit -m "📊 Update statistics $(TZ='Asia/Seoul' date '+%Y-%m-%d %H:%M')"
+            git push
+          else
+            echo "통계 파일 변경사항 없음"
+          fi
