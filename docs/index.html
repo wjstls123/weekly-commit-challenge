@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>위클리 커밋 챌린지</title>
     <link rel="icon" type="image/png" sizes="96x96" href="./images/favicon-96x96.png">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tlqhrm.github.io/weekly-commit-challenge/">
+    <meta property="og:title" content="위클리 커밋 챌린지">
+    <meta property="og:description" content="꾸준히 커밋하는 습관을 기록하고 도전해보세요!">
+    <meta property="og:image" content="https://tlqhrm.github.io/weekly-commit-challenge/images/og.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://tlqhrm.github.io/weekly-commit-challenge/">
+    <meta property="twitter:title" content="위클리 커밋 챌린지">
+    <meta property="twitter:description" content="꾸준히 커밋하는 습관을 기록하고 도전해보세요!">
+    <meta property="twitter:image" content="https://tlqhrm.github.io/weekly-commit-challenge/images/og.png">
+    
     <link rel="stylesheet" href="styles.css">
 
 
@@ -21,7 +36,7 @@
     <div class="container">
         <header>
             <h1><span class="emoji">🔥</span> <span class="title-text">위클리 커밋 챌린지</span></h1>
-            <p class="subtitle">꾸준히 커밋하는 습관을 기록하고 추적해보세요!</p>
+            <p class="subtitle">꾸준히 커밋하는 습관을 기록하고 도전해보세요!</p>
             <div class="current-challenge">
                 <span class="challenge-badge" id="currentChallenge">
                     <span class="badge-icon">📅</span>
@@ -265,7 +280,7 @@
                         <p>Organization 계정으로는 Weekly Commit Challenge에 참여할 수 없습니다. 반드시 개인 사용자 계정으로 Fork해주세요.</p>
                     </div>
                 </div>
-                
+
                 <div class="notice-item">
                     <div class="notice-icon">🔄</div>
                     <div class="notice-content">
@@ -273,7 +288,7 @@
                         <p>"Sync fork"를 실행하면 모든 기존 기록이 삭제됩니다. 기록을 보존하려면 sync를 하지 마세요.</p>
                     </div>
                 </div>
-                
+
                 <div class="notice-item">
                     <div class="notice-icon">🛑</div>
                     <div class="notice-content">
@@ -281,7 +296,7 @@
                         <p>챌린지를 그만두려면 Fork한 레포지토리를 삭제하면 됩니다.</p>
                     </div>
                 </div>
-                
+
                 <div class="notice-item">
                     <div class="notice-icon">🔄</div>
                     <div class="notice-content">
@@ -315,9 +330,9 @@
             // 토스트 생성
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            
+
             const icon = type === 'success' ? '✅' : type === 'info' ? 'ℹ️' : '📋';
-            
+
             toast.innerHTML = `
                 <span class="toast-icon">${icon}</span>
                 <span class="toast-message">${message}</span>
@@ -362,7 +377,7 @@
             const htmlCode = `<a href="https://weekly-commit-challenge.wjstls123.workers.dev/">
   <img src="https://weekly-commit-card.wjstls123.workers.dev/?username=YOUR_USERNAME" alt="Weekly Commit Challenge" />
 </a>`;
-            
+
             navigator.clipboard.writeText(htmlCode).then(() => {
                 showToast('코드가 복사되었습니다! YOUR_USERNAME을 본인의 GitHub 사용자명으로 바꿔주세요.', 'success');
             });
@@ -373,7 +388,7 @@
             const htmlCode = `<a href="https://weekly-commit-challenge.wjstls123.workers.dev/">
   <img src="https://weekly-commit-card.wjstls123.workers.dev/?username=${username}" alt="Weekly Commit Challenge" />
 </a>`;
-            
+
             navigator.clipboard.writeText(htmlCode).then(() => {
                 showToast('코드가 복사되었습니다!', 'success');
             });
