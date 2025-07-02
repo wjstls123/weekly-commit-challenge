@@ -1,0 +1,123 @@
+{
+  "username": "dummy-user",
+  "lastUpdated": "2025-07-02T12:52:50.428Z",
+  "records": [
+    {
+      "id": 1,
+      "period": "03/31 ~ 04/06",
+      "week": "2025년 13주차",
+      "commits": 3,
+      "status": "✅ 성공",
+      "weekStart": "2025-03-31",
+      "weekEnd": "2025-04-06"
+    },
+    {
+      "id": 2,
+      "period": "04/07 ~ 04/13",
+      "week": "2025년 14주차",
+      "commits": 5,
+      "status": "✅ 성공",
+      "weekStart": "2025-04-07",
+      "weekEnd": "2025-04-13"
+    },
+    {
+      "id": 3,
+      "period": "04/14 ~ 04/20",
+      "week": "2025년 15주차",
+      "commits": 3,
+      "status": "✅ 성공",
+      "weekStart": "2025-04-14",
+      "weekEnd": "2025-04-20"
+    },
+    {
+      "id": 4,
+      "period": "04/21 ~ 04/27",
+      "week": "2025년 16주차",
+      "commits": 0,
+      "status": "❌ 실패",
+      "weekStart": "2025-04-21",
+      "weekEnd": "2025-04-27"
+    },
+    {
+      "id": 5,
+      "period": "04/28 ~ 05/04",
+      "week": "2025년 17주차",
+      "commits": 4,
+      "status": "✅ 성공",
+      "weekStart": "2025-04-28",
+      "weekEnd": "2025-05-04"
+    },
+    {
+      "id": 6,
+      "period": "05/05 ~ 05/11",
+      "week": "2025년 18주차",
+      "commits": 0,
+      "status": "❌ 실패",
+      "weekStart": "2025-05-05",
+      "weekEnd": "2025-05-11"
+    },
+    {
+      "id": 7,
+      "period": "05/12 ~ 05/18",
+      "week": "2025년 19주차",
+      "commits": 0,
+      "status": "❌ 실패",
+      "weekStart": "2025-05-12",
+      "weekEnd": "2025-05-18"
+    },
+    {
+      "id": 8,
+      "period": "05/19 ~ 05/25",
+      "week": "2025년 20주차",
+      "commits": 8,
+      "status": "✅ 성공",
+      "weekStart": "2025-05-19",
+      "weekEnd": "2025-05-25"
+    },
+    {
+      "id": 9,
+      "period": "05/26 ~ 06/01",
+      "week": "2025년 21주차",
+      "commits": 3,
+      "status": "✅ 성공",
+      "weekStart": "2025-05-26",
+      "weekEnd": "2025-06-01"
+    },
+    {
+      "id": 10,
+      "period": "06/02 ~ 06/08",
+      "week": "2025년 22주차",
+      "commits": 1,
+      "status": "✅ 성공",
+      "weekStart": "2025-06-02",
+      "weekEnd": "2025-06-08"
+    },
+    {
+      "id": 11,
+      "period": "06/09 ~ 06/15",
+      "week": "2025년 23주차",
+      "commits": 0,
+      "status": "❌ 실패",
+      "weekStart": "2025-06-09",
+      "weekEnd": "2025-06-15"
+    },
+    {
+      "id": 12,
+      "period": "06/16 ~ 06/22",
+      "week": "2025년 24주차",
+      "commits": 5,
+      "status": "✅ 성공",
+      "weekStart": "2025-06-16",
+      "weekEnd": "2025-06-22"
+    },
+    {
+      "id": 13,
+      "period": "06/23 ~ 06/29",
+      "week": "2025년 25주차",
+      "commits": 3,
+      "status": "✅ 성공",
+      "weekStart": "2025-06-23",
+      "weekEnd": "2025-06-29"
+    }
+  ]
+}
