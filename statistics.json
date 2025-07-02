@@ -1,40 +1,40 @@
 {
-  "lastUpdated": "2025-07-02T15:04:11.517Z",
+  "lastUpdated": "2025-07-02T15:16:40.197Z",
   "totalParticipants": 2,
   "activeParticipants": 0,
   "recordHolders": 0,
   "weeklySuccessful": 2,
   "participants": [
     {
+      "username": "wjstls123",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/218948587?v=4",
+      "lastPushed": "2025-07-02T15:13:30Z",
+      "currentStreak": 1,
+      "maxStreak": 1,
+      "totalWeeks": 1,
+      "successRate": 100,
+      "currentWeekSuccess": true,
+      "currentWeekCommits": 2
+    },
+    {
       "username": "tlqhrm",
       "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-      "lastPushed": "2025-07-02T14:59:16Z",
+      "lastPushed": "2025-07-02T15:16:20Z",
       "currentStreak": 2,
       "maxStreak": 2,
       "totalWeeks": 2,
       "successRate": 100,
       "currentWeekSuccess": true,
       "currentWeekCommits": 5
-    },
-    {
-      "username": "wjstls123",
-      "avatarUrl": "https://avatars.githubusercontent.com/u/218948587?v=4",
-      "lastPushed": "2025-07-02T14:59:16Z",
-      "currentStreak": 2,
-      "maxStreak": 2,
-      "totalWeeks": 2,
-      "successRate": 100,
-      "currentWeekSuccess": true,
-      "currentWeekCommits": 2
     }
   ],
-  "averageStreak": 2,
+  "averageStreak": 1.5,
   "averageSuccessRate": 100,
   "rankingByStreak": [
     {
       "username": "tlqhrm",
       "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-      "lastPushed": "2025-07-02T14:59:16Z",
+      "lastPushed": "2025-07-02T15:16:20Z",
       "currentStreak": 2,
       "maxStreak": 2,
       "totalWeeks": 2,
@@ -45,10 +45,10 @@
     {
       "username": "wjstls123",
       "avatarUrl": "https://avatars.githubusercontent.com/u/218948587?v=4",
-      "lastPushed": "2025-07-02T14:59:16Z",
-      "currentStreak": 2,
-      "maxStreak": 2,
-      "totalWeeks": 2,
+      "lastPushed": "2025-07-02T15:13:30Z",
+      "currentStreak": 1,
+      "maxStreak": 1,
+      "totalWeeks": 1,
       "successRate": 100,
       "currentWeekSuccess": true,
       "currentWeekCommits": 2
@@ -56,33 +56,33 @@
   ],
   "rankingBySuccessRate": [
     {
+      "username": "wjstls123",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/218948587?v=4",
+      "lastPushed": "2025-07-02T15:13:30Z",
+      "currentStreak": 1,
+      "maxStreak": 1,
+      "totalWeeks": 1,
+      "successRate": 100,
+      "currentWeekSuccess": true,
+      "currentWeekCommits": 2
+    },
+    {
       "username": "tlqhrm",
       "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-      "lastPushed": "2025-07-02T14:59:16Z",
+      "lastPushed": "2025-07-02T15:16:20Z",
       "currentStreak": 2,
       "maxStreak": 2,
       "totalWeeks": 2,
       "successRate": 100,
       "currentWeekSuccess": true,
       "currentWeekCommits": 5
-    },
-    {
-      "username": "wjstls123",
-      "avatarUrl": "https://avatars.githubusercontent.com/u/218948587?v=4",
-      "lastPushed": "2025-07-02T14:59:16Z",
-      "currentStreak": 2,
-      "maxStreak": 2,
-      "totalWeeks": 2,
-      "successRate": 100,
-      "currentWeekSuccess": true,
-      "currentWeekCommits": 2
     }
   ],
   "rankingByMaxStreak": [
     {
       "username": "tlqhrm",
       "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
-      "lastPushed": "2025-07-02T14:59:16Z",
+      "lastPushed": "2025-07-02T15:16:20Z",
       "currentStreak": 2,
       "maxStreak": 2,
       "totalWeeks": 2,
@@ -93,10 +93,10 @@
     {
       "username": "wjstls123",
       "avatarUrl": "https://avatars.githubusercontent.com/u/218948587?v=4",
-      "lastPushed": "2025-07-02T14:59:16Z",
-      "currentStreak": 2,
-      "maxStreak": 2,
-      "totalWeeks": 2,
+      "lastPushed": "2025-07-02T15:13:30Z",
+      "currentStreak": 1,
+      "maxStreak": 1,
+      "totalWeeks": 1,
       "successRate": 100,
       "currentWeekSuccess": true,
       "currentWeekCommits": 2
