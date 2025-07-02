@@ -236,6 +236,45 @@ jobs:
           echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
           echo "user_exists=true" >> $GITHUB_OUTPUT
 
+      - name: Remove duplicates from existing records
+        if: steps.skip_check.outputs.should_skip == 'false' && steps.existing_records.outputs.has_records == 'true'
+        run: |
+          echo "🧹 기존 기록 중복 제거 중..."
+          
+          if [ -f record.json ]; then
+            # 원본 개수 확인
+            ORIGINAL_COUNT=$(cat record.json | jq '.records | length' 2>/dev/null || echo "0")
+            
+            # 중복 제거: weekStart 기준으로 마지막 기록만 유지
+            CLEANED_RECORDS=$(cat record.json | jq '
+              .records |= (
+                group_by(.weekStart) | 
+                map(max_by(.id)) |
+                sort_by(.id)
+              )
+            ')
+            
+            # ID 재정렬 (1부터 순차적으로)
+            REINDEXED_RECORDS=$(echo "$CLEANED_RECORDS" | jq '
+              .records |= (
+                to_entries | 
+                map(.value.id = (.key + 1)) | 
+                map(.value)
+              )
+            ')
+            
+            # 중복 제거 결과 확인
+            CLEANED_COUNT=$(echo "$REINDEXED_RECORDS" | jq '.records | length')
+            
+            # 변경사항이 있으면 파일 업데이트
+            if [ "$ORIGINAL_COUNT" != "$CLEANED_COUNT" ]; then
+              echo "$REINDEXED_RECORDS" > record.json
+              echo "✅ 중복 제거 완료: $ORIGINAL_COUNT개 → $CLEANED_COUNT개"
+            else
+              echo "ℹ️ 중복 기록 없음 ($ORIGINAL_COUNT개 유지)"
+            fi
+          fi
+
       - name: Update or create record
         if: steps.skip_check.outputs.should_skip == 'false' && (steps.should_add_record.outputs.should_add == 'true' || steps.existing_records.outputs.has_records == 'true')
         run: |
