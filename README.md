@@ -44,15 +44,15 @@ Fork한 레포지토리의 Actions 탭에서 워크플로우를 활성화하세�
 GitHub README에 다음 코드를 추가하면 실시간으로 업데이트되는 카드가 표시됩니다:
 
 ```markdown
-![Weekly Commit Challenge](https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=YOUR_USERNAME)
+![Weekly Commit Challenge](https://weekly-commit-card.wjstls123.workers.dev/?username=YOUR_USERNAME)
 ```
 
 ### 📋 예시:
 ```markdown
-![Weekly Commit Challenge](https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=tlqhrm)
+![Weekly Commit Challenge](https://weekly-commit-card.wjstls123.workers.dev/?username=tlqhrm)
 ```
 
-![Weekly Commit Challenge](https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=tlqhrm)
+![Weekly Commit Challenge](https://weekly-commit-card.wjstls123.workers.dev/?username=tlqhrm)
 
 **특징:**
 - 🚀 **진짜 실시간**: record.json 업데이트 즉시 반영

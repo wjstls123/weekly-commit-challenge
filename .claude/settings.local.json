@@ -18,7 +18,8 @@
       "Bash(gh workflow run:*)",
       "Bash(grep:*)",
       "Bash(mkdir:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(cp:*)"
     ],
     "deny": []
   }

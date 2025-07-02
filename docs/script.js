@@ -126,7 +126,7 @@ function initProfileSearch() {
             searchBtn.click();
         }
     });
-    
+
     // 코드 탭 클릭 이벤트 리스너 추가
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('code-tab')) {
@@ -161,7 +161,7 @@ function showProfileUI(data) {
 
     // GitHub에서 제공하는 SVG 카드 확인
     const cardUrl = `https://raw.githubusercontent.com/tlqhrm/weekly-commit-challenge/master/cards/user-${data.username}.svg`;
-    
+
     profileResult.innerHTML = `
         <div class="profile-header">
             <img class="profile-avatar" src="${data.avatarUrl}" alt="프로필 이미지">
@@ -174,9 +174,9 @@ function showProfileUI(data) {
         </div>
         
         <div class="profile-card-section">
-            <h4>내 실시간 프로필 카드</h4>
+            <h4>내 프로필 카드</h4>
             <div class="card-preview">
-                <img src="https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=${data.username}" 
+                <img src="https://weekly-commit-card.wjstls123.workers.dev/?username=${data.username}" 
                      alt="Weekly Commit Challenge Card"
                      style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); background: transparent;">
             </div>
@@ -186,10 +186,9 @@ function showProfileUI(data) {
                 </p>
                 
                 <div>
-                    <label style="font-size: 12px; color: #586069; display: block; margin-bottom: 5px;">실시간 동적 카드:</label>
                     <div class="import-url">
                         <input type="text" readonly 
-                               value='![Weekly Commit Challenge](https://9d4f8efc-weekly-commit-card.wjstls123.workers.dev/?username=${data.username})'
+                               value='![Weekly Commit Challenge](https://weekly-commit-card.wjstls123.workers.dev/?username=${data.username})'
                                id="cloudflareCode-${data.username}">
                         <button onclick="copyToClipboard('cloudflareCode-${data.username}')">복사</button>
                     </div>
@@ -200,15 +199,15 @@ function showProfileUI(data) {
         
         <div class="profile-stats">
             <div class="stat-item">
-                <span class="stat-label">이번 주 커밋</span>
+                <span class="stat-label">이번 주 커밋 수</span>
                 <span class="stat-value">${data.currentWeekCommits}개</span>
             </div>
             <div class="stat-item">
-                <span class="stat-label">연속 성공</span>
+                <span class="stat-label">연속 도전 중</span>
                 <span class="stat-value">${data.currentStreak}주</span>
             </div>
             <div class="stat-item">
-                <span class="stat-label">최장 연속</span>
+                <span class="stat-label">최고 연속 기록</span>
                 <span class="stat-value">${data.maxStreak || data.currentStreak}주</span>
             </div>
             <div class="stat-item">
@@ -316,7 +315,7 @@ function calculateStats(records) {
     let currentStreak = 0;
     let maxStreak = 0;
     let tempStreak = 0;
-    
+
     // 현재 연속 주차 계산 (최신부터 역순으로)
     for (let i = records.length - 1; i >= 0; i--) {
         if (records[i].success) {
@@ -325,7 +324,7 @@ function calculateStats(records) {
             break;
         }
     }
-    
+
     // 최장 연속 주차 계산 (전체 기록에서)
     for (const record of records) {
         if (record.success) {
@@ -372,7 +371,7 @@ async function searchProfile(username) {
 
         // 성공 시 프로필 UI 표시
         showProfileUI(data);
-        
+
         // 로컬스토리지에 사용자명 저장
         localStorage.setItem('weekly-commit-username', username);
 
@@ -397,7 +396,9 @@ function displayRecentRecords(records) {
             <div class="no-data" style="color: #8b949e; text-align: center; padding: 20px;">
                 <p style="margin-bottom: 10px;">📋 아직 기록이 없습니다</p>
                 <p style="font-size: 0.9em; color: #6e7681;">워크플로우가 아직 실행되지 않았습니다.<br>
-                Fork 후 GitHub Actions를 활성화했다면 곧 데이터가 수집됩니다.</p>
+                Fork 후 GitHub Actions를 활성화했다면 곧 데이터가 수집됩니다.<br>
+                즉시 실행을 원하시면 수동으로 실행해주세요.</p>
+                
             </div>
         `;
         return;
@@ -460,7 +461,7 @@ async function loadForkStatistics() {
             if (response.ok) {
                 const stats = await response.json();
                 console.log('statistics.json에서 통계 데이터 로드 성공:', stats);
-                
+
                 displayCachedStatistics(stats);
                 return;
             }
@@ -581,6 +582,12 @@ function displayRanking(filter, page = 1) {
         case 'success-rate':
             sortedData.sort((a, b) => b.successRate - a.successRate);
             break;
+        case 'max-streak':
+            sortedData.sort((a, b) => (b.maxStreak || 0) - (a.maxStreak || 0));
+            break;
+        case 'commits':
+            sortedData.sort((a, b) => (b.currentWeekCommits || 0) - (a.currentWeekCommits || 0));
+            break;
     }
 
     // 최대 100명으로 제한
@@ -602,19 +609,29 @@ function displayRanking(filter, page = 1) {
     const rankingHTML = pageData.map((user, index) => {
         const actualIndex = startIndex + index;
         const rankClass = actualIndex === 0 ? 'gold' : actualIndex === 1 ? 'silver' : actualIndex === 2 ? 'bronze' : '';
-        const badgeClass = user.currentWeekSuccess ? 'success' : 'progress';
-        const badgeText = user.currentWeekSuccess ? '성공' : '진행중';
 
         let mainStat = '';
+        let statColor = '#c9d1d9';
         switch (filter) {
             case 'streak':
-                mainStat = `${user.currentStreak}주`;
+                const streakIcon = user.currentStreak >= 10 ? '🔥' : user.currentStreak >= 5 ? '⚡' : user.currentStreak >= 1 ? '💪' : '🌱';
+                statColor = user.currentStreak >= 10 ? '#22c55e' : user.currentStreak >= 5 ? '#3b82f6' : user.currentStreak >= 1 ? '#8b5cf6' : '#64748b';
+                mainStat = `${streakIcon} 연속 도전 중: <span style="color: ${statColor}; font-weight: 700;">${user.currentStreak}주</span>`;
                 break;
             case 'success-rate':
-                mainStat = `${user.successRate}%`;
+                const rateIcon = user.successRate >= 90 ? '🏆' : user.successRate >= 70 ? '⭐' : user.successRate >= 50 ? '👍' : '📈';
+                statColor = user.successRate >= 90 ? '#22c55e' : user.successRate >= 70 ? '#3b82f6' : user.successRate >= 50 ? '#f59e0b' : '#ef4444';
+                mainStat = `${rateIcon} 성공률: <span style="color: ${statColor}; font-weight: 700;">${user.successRate}%</span>`;
                 break;
             case 'max-streak':
-                mainStat = `${user.maxStreak || 0}주`;
+                const maxIcon = (user.maxStreak || 0) >= 20 ? '👑' : (user.maxStreak || 0) >= 10 ? '🎖️' : (user.maxStreak || 0) >= 5 ? '🏅' : '📊';
+                statColor = (user.maxStreak || 0) >= 20 ? '#22c55e' : (user.maxStreak || 0) >= 10 ? '#3b82f6' : (user.maxStreak || 0) >= 5 ? '#8b5cf6' : '#64748b';
+                mainStat = `${maxIcon} 최고 연속 기록: <span style="color: ${statColor}; font-weight: 700;">${user.maxStreak || 0}주</span>`;
+                break;
+            case 'commits':
+                const commitIcon = (user.currentWeekCommits || 0) >= 10 ? '🚀' : (user.currentWeekCommits || 0) >= 5 ? '💻' : (user.currentWeekCommits || 0) >= 1 ? '📝' : '💤';
+                statColor = (user.currentWeekCommits || 0) >= 10 ? '#22c55e' : (user.currentWeekCommits || 0) >= 5 ? '#3b82f6' : (user.currentWeekCommits || 0) >= 1 ? '#f59e0b' : '#64748b';
+                mainStat = `${commitIcon} 이번 주 커밋 수: <span style="color: ${statColor}; font-weight: 700;">${user.currentWeekCommits || 0}개</span>`;
                 break;
         }
 
@@ -626,7 +643,6 @@ function displayRanking(filter, page = 1) {
                     <span class="user-name">${user.username}</span>
                 </div>
                 <div class="user-stats">
-                    <span class="badge ${badgeClass}">${badgeText}</span>
                     <span class="main-stat">${mainStat}</span>
                 </div>
             </div>
@@ -636,7 +652,7 @@ function displayRanking(filter, page = 1) {
 
     // 페이지네이션 HTML 생성
     const paginationHTML = generatePagination(totalPages, page);
-    
+
     rankingList.innerHTML = rankingHTML + paginationHTML;
 }
 
@@ -663,6 +679,10 @@ function displayCachedRanking(filter, page = 1) {
         case 'max-streak':
             sortedData = globalRankingData.maxStreak || [];
             break;
+        case 'commits':
+            // 이번 주 커밋 수는 별도 랭킹이 없으므로 participants 데이터를 사용하여 정렬
+            sortedData = (globalRankingData.participants || []).sort((a, b) => (b.currentWeekCommits || 0) - (a.currentWeekCommits || 0));
+            break;
     }
 
     // 최대 100명으로 제한
@@ -684,19 +704,29 @@ function displayCachedRanking(filter, page = 1) {
     const rankingHTML = pageData.map((user, index) => {
         const actualIndex = startIndex + index;
         const rankClass = actualIndex === 0 ? 'gold' : actualIndex === 1 ? 'silver' : actualIndex === 2 ? 'bronze' : '';
-        const badgeClass = user.currentWeekSuccess ? 'success' : 'progress';
-        const badgeText = user.currentWeekSuccess ? '성공' : '진행중';
 
         let mainStat = '';
+        let statColor = '#c9d1d9';
         switch (filter) {
             case 'streak':
-                mainStat = `${user.currentStreak}주`;
+                const streakIcon = user.currentStreak >= 10 ? '🔥' : user.currentStreak >= 5 ? '⚡' : user.currentStreak >= 1 ? '💪' : '🌱';
+                statColor = user.currentStreak >= 10 ? '#22c55e' : user.currentStreak >= 5 ? '#3b82f6' : user.currentStreak >= 1 ? '#8b5cf6' : '#64748b';
+                mainStat = `${streakIcon} 연속 도전 중: <span style="color: ${statColor}; font-weight: 700;">${user.currentStreak}주</span>`;
                 break;
             case 'success-rate':
-                mainStat = `${user.successRate}%`;
+                const rateIcon = user.successRate >= 90 ? '🏆' : user.successRate >= 70 ? '⭐' : user.successRate >= 50 ? '👍' : '📈';
+                statColor = user.successRate >= 90 ? '#22c55e' : user.successRate >= 70 ? '#3b82f6' : user.successRate >= 50 ? '#f59e0b' : '#ef4444';
+                mainStat = `${rateIcon} 성공률: <span style="color: ${statColor}; font-weight: 700;">${user.successRate}%</span>`;
                 break;
             case 'max-streak':
-                mainStat = `${user.maxStreak || 0}주`;
+                const maxIcon = (user.maxStreak || 0) >= 20 ? '👑' : (user.maxStreak || 0) >= 10 ? '🎖️' : (user.maxStreak || 0) >= 5 ? '🏅' : '📊';
+                statColor = (user.maxStreak || 0) >= 20 ? '#22c55e' : (user.maxStreak || 0) >= 10 ? '#3b82f6' : (user.maxStreak || 0) >= 5 ? '#8b5cf6' : '#64748b';
+                mainStat = `${maxIcon} 최고 연속 기록: <span style="color: ${statColor}; font-weight: 700;">${user.maxStreak || 0}주</span>`;
+                break;
+            case 'commits':
+                const commitIcon = (user.currentWeekCommits || 0) >= 10 ? '🚀' : (user.currentWeekCommits || 0) >= 5 ? '💻' : (user.currentWeekCommits || 0) >= 1 ? '📝' : '💤';
+                statColor = (user.currentWeekCommits || 0) >= 10 ? '#22c55e' : (user.currentWeekCommits || 0) >= 5 ? '#3b82f6' : (user.currentWeekCommits || 0) >= 1 ? '#f59e0b' : '#64748b';
+                mainStat = `${commitIcon} 이번 주 커밋 수: <span style="color: ${statColor}; font-weight: 700;">${user.currentWeekCommits || 0}개</span>`;
                 break;
         }
 
@@ -708,7 +738,6 @@ function displayCachedRanking(filter, page = 1) {
                     <span class="user-name">${user.username}</span>
                 </div>
                 <div class="user-stats">
-                    <span class="badge ${badgeClass}">${badgeText}</span>
                     <span class="main-stat">${mainStat}</span>
                 </div>
             </div>
@@ -718,7 +747,7 @@ function displayCachedRanking(filter, page = 1) {
 
     // 페이지네이션 HTML 생성
     const paginationHTML = generatePagination(totalPages, page);
-    
+
     rankingList.innerHTML = rankingHTML + paginationHTML;
 }
 
@@ -727,40 +756,40 @@ function generatePagination(totalPages, currentPage) {
     if (totalPages <= 1) return '';
 
     let paginationHTML = '<div class="pagination">';
-    
+
     // 이전 버튼
     if (currentPage > 1) {
         paginationHTML += `<button class="page-btn" onclick="changePage(${currentPage - 1})">‹</button>`;
     }
-    
+
     // 페이지 번호들
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, currentPage + 2);
-    
+
     if (startPage > 1) {
         paginationHTML += `<button class="page-btn" onclick="changePage(1)">1</button>`;
         if (startPage > 2) {
             paginationHTML += '<span class="page-dots">...</span>';
         }
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
         const activeClass = i === currentPage ? 'active' : '';
         paginationHTML += `<button class="page-btn ${activeClass}" onclick="changePage(${i})">${i}</button>`;
     }
-    
+
     if (endPage < totalPages) {
         if (endPage < totalPages - 1) {
             paginationHTML += '<span class="page-dots">...</span>';
         }
         paginationHTML += `<button class="page-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
     }
-    
+
     // 다음 버튼
     if (currentPage < totalPages) {
         paginationHTML += `<button class="page-btn" onclick="changePage(${currentPage + 1})">›</button>`;
     }
-    
+
     paginationHTML += '</div>';
     return paginationHTML;
 }
@@ -777,26 +806,26 @@ function changePage(page) {
 // 랭킹에서 유저 상세정보 토글
 async function toggleRankingDetail(username, rankIndex) {
     const detailElement = document.getElementById(`ranking-detail-${rankIndex}`);
-    
+
     if (detailElement.style.display === 'none') {
         // 다른 열린 상세정보들 모두 닫기
         document.querySelectorAll('.ranking-detail').forEach(detail => {
             detail.style.display = 'none';
         });
-        
+
         // 로딩 표시
         detailElement.innerHTML = '<div class="loading" style="padding: 20px; text-align: center;">사용자 정보를 불러오는 중...</div>';
         detailElement.style.display = 'block';
-        
+
         try {
             // 사용자 정보 불러오기
             const data = await fetchUserData(username);
-            
+
             // 상세 정보 HTML 생성
-            const statusText = data.totalWeeks === 0 ? 
-                '⏸️ 아직 참여하지 않음' : 
+            const statusText = data.totalWeeks === 0 ?
+                '⏸️ 아직 참여하지 않음' :
                 (data.currentWeekSuccess ? '✅ 이번 주 성공' : `🔄 진행중 (${data.currentWeekCommits}개)`);
-            
+
             const statusClass = data.totalWeeks === 0 ? 'not-started' : (data.currentWeekSuccess ? 'success' : 'progress');
 
             detailElement.innerHTML = `
@@ -814,15 +843,15 @@ async function toggleRankingDetail(username, rankIndex) {
                     
                     <div class="detail-stats">
                         <div class="detail-stat-item">
-                            <span class="detail-stat-label">이번 주 커밋</span>
+                            <span class="detail-stat-label">이번 주 커밋 수</span>
                             <span class="detail-stat-value">${data.currentWeekCommits}개</span>
                         </div>
                         <div class="detail-stat-item">
-                            <span class="detail-stat-label">연속 성공</span>
+                            <span class="detail-stat-label">연속 도전 중</span>
                             <span class="detail-stat-value">${data.currentStreak}주</span>
                         </div>
                         <div class="detail-stat-item">
-                            <span class="detail-stat-label">최장 연속</span>
+                            <span class="detail-stat-label">최고 연속 기록</span>
                             <span class="detail-stat-value">${data.maxStreak || 0}주</span>
                         </div>
                         <div class="detail-stat-item">
@@ -855,6 +884,8 @@ async function fetchUserData(username) {
     // 기본 사용자 정보 캐시 확인
     const userInfoCacheKey = `user_info_${username}`;
     let userData = getCachedData(userInfoCacheKey, 5 * 60 * 1000); // 5분
+
+    let userExists = false;
     
     if (!userData) {
         try {
@@ -862,14 +893,22 @@ async function fetchUserData(username) {
             const userResponse = await fetch(`https://api.github.com/users/${username}`);
             if (userResponse.ok) {
                 userData = await userResponse.json();
+                userExists = true;
                 // 사용자 정보 캐시에 저장
                 setCachedData(userInfoCacheKey, userData);
+            } else if (userResponse.status === 404) {
+                // 사용자가 존재하지 않음
+                throw new Error('유저를 찾을 수 없습니다.');
             }
         } catch (userError) {
+            if (userError.message === '유저를 찾을 수 없습니다.') {
+                throw userError;
+            }
             console.log('사용자 정보 조회 실패:', userError);
         }
     } else {
         console.log('캐시에서 사용자 정보 로드:', username);
+        userExists = true;
     }
 
     const defaultAvatarUrl = userData?.avatar_url || `https://github.com/${username}.png`;
@@ -884,18 +923,18 @@ async function fetchUserData(username) {
     } catch (jsonError) {
         console.log('record.json 파일 읽기 실패:', jsonError.message);
     }
-    
+
     if (recordJsonResponse) {
         console.log('record.json 응답 처리 시작');
         try {
             const recordData = recordJsonResponse; // raw 파일이므로 바로 사용
             console.log('record.json 파싱 성공:', recordData);
-            
+
             // 전체 기록에서 통계 계산
             const records = recordData.records || [];
             const stats = calculateStatsFromRecords(records);
             const latestRecord = records[records.length - 1];
-            
+
             const data = {
                 username: username,
                 avatarUrl: recordData.avatarUrl || defaultAvatarUrl,
@@ -909,7 +948,7 @@ async function fetchUserData(username) {
                 totalWeeks: stats.totalWeeks,
                 recentRecords: records.slice(-5) // 최근 5개 기록
             };
-            
+
             console.log('record.json에서 생성한 최종 데이터:', data);
             return data;
         } catch (parseError) {
@@ -929,7 +968,7 @@ async function fetchUserData(username) {
     } catch (err) {
         console.log('통계 데이터 조회 실패:', err);
     }
-    
+
     if (statsData) {
         const userStats = statsData.participants?.find(p => p.username === username);
         if (userStats) {
@@ -942,7 +981,7 @@ async function fetchUserData(username) {
                 const dayDiff = (target - jan4) / 86400000;
                 return Math.ceil(dayDiff / 7);
             };
-            
+
             const data = {
                 username: username,
                 avatarUrl: userStats.avatarUrl || defaultAvatarUrl,
@@ -956,7 +995,7 @@ async function fetchUserData(username) {
                 totalWeeks: userStats.totalWeeks,
                 recentRecords: []
             };
-            
+
             console.log('통계 데이터에서 생성한 최종 데이터:', data);
             return data;
         }
@@ -983,7 +1022,7 @@ async function fetchUserData(username) {
                 avatarUrl: defaultAvatarUrl,
                 ...stats
             };
-            
+
             console.log('record.json에서 생성한 최종 데이터:', data);
             return data;
         } catch (parseError) {
@@ -991,34 +1030,15 @@ async function fetchUserData(username) {
         }
     }
 
-    // 두 파일 모두 없는 경우 기본 데이터 반환
-    console.log('모든 데이터 소스 실패, 기본 데이터 반환');
-    const now = new Date();
-    const getWeekNumber = (date) => {
-        const target = new Date(date.valueOf());
-        const dayNr = (target.getDay() + 6) % 7;
-        target.setDate(target.getDate() - dayNr + 3);
-        const jan4 = new Date(target.getFullYear(), 0, 4);
-        const dayDiff = (target - jan4) / 86400000;
-        return Math.ceil(dayDiff / 7);
-    };
-
-    const defaultData = {
-        username: username,
-        avatarUrl: defaultAvatarUrl,
-        currentYear: now.getFullYear(),
-        currentWeek: getWeekNumber(now),
-        currentWeekCommits: 0,
-        currentWeekSuccess: false,
-        currentStreak: 0,
-        maxStreak: 0,
-        successRate: 0,
-        totalWeeks: 0,
-        recentRecords: []
-    };
+    // 사용자는 존재하지만 레포지토리가 없는 경우
+    if (userExists) {
+        console.log('사용자는 존재하지만 레포지토리가 없음');
+        throw new Error('fork 후 이용해주세요.');
+    }
     
-    console.log('기본 데이터 생성:', defaultData);
-    return defaultData;
+    // 사용자도 존재하지 않는 경우 (이미 위에서 처리됨)
+    console.log('모든 데이터 소스 실패');
+    throw new Error('유저를 찾을 수 없습니다.');
 }
 
 // 로컬스토리지 캐시 함수들
@@ -1116,7 +1136,7 @@ function debugCacheStatus() {
             cacheKeys.push(key);
         }
     }
-    
+
     cacheKeys.forEach(key => {
         const cached = localStorage.getItem(key);
         if (cached) {
@@ -1138,7 +1158,7 @@ function loadSavedProfile() {
     if (savedUsername) {
         console.log('저장된 사용자명 발견:', savedUsername);
         debugCacheStatus(); // 캐시 상태 확인
-        
+
         const profileInput = document.getElementById('profileInput');
         if (profileInput) {
             profileInput.value = savedUsername;
@@ -1155,19 +1175,19 @@ window.debugCache = debugCacheStatus;
 function copyToClipboard(elementId) {
     const element = document.getElementById(elementId);
     if (!element) return;
-    
+
     element.select();
     element.setSelectionRange(0, 99999); // 모바일용
-    
+
     try {
         document.execCommand('copy');
-        
+
         // 복사 성공 피드백
         const button = element.parentElement.querySelector('button');
         const originalText = button.textContent;
         button.textContent = '복사됨!';
         button.style.background = '#28a745';
-        
+
         setTimeout(() => {
             button.textContent = originalText;
             button.style.background = '#0366d6';
@@ -1182,10 +1202,10 @@ function copyToClipboard(elementId) {
 function switchCodeTab(tab) {
     const tabs = document.querySelectorAll('.code-tab');
     const blocks = document.querySelectorAll('.code-block');
-    
+
     tabs.forEach(t => t.classList.remove('active'));
     blocks.forEach(b => b.classList.add('hidden'));
-    
+
     document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
     document.getElementById(`${tab}-code`).classList.remove('hidden');
 }
@@ -1194,13 +1214,13 @@ function switchCodeTab(tab) {
 function copyCode(blockId) {
     const block = document.getElementById(blockId);
     const code = block.querySelector('code').textContent;
-    
+
     navigator.clipboard.writeText(code).then(() => {
         const button = block.querySelector('.copy-btn');
         const originalText = button.textContent;
         button.textContent = '복사됨!';
         button.style.background = 'rgba(40, 167, 69, 0.8)';
-        
+
         setTimeout(() => {
             button.textContent = originalText;
             button.style.background = 'rgba(255,255,255,0.2)';

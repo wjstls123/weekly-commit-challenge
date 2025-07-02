@@ -2,8 +2,7 @@ name: Weekly Commit Tracker
 
 on:
   schedule:
-    - cron: '0 0 * * *'   # 매일 UTC 00:00 (한국시간 09:00)
-    - cron: '0 12 * * *'  # 매일 UTC 12:00 (한국시간 21:00)
+    - cron: '0 * * * *'   # 매시간 정각 실행
   workflow_dispatch:
 
 jobs:
@@ -171,6 +170,102 @@ jobs:
             echo "today_success=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Initialize records for Fork users
+        run: |
+          USERNAME="${{ github.repository_owner }}"
+          
+          # Fork 사용자인지 확인 (원본 소유자가 아닌 경우)
+          if [ "$USERNAME" != "tlqhrm" ]; then
+            echo "🔄 Fork 사용자 ($USERNAME) 감지 - 기록 초기화 확인 중..."
+            
+            # 기존 record.md가 다른 사용자의 데이터를 포함하고 있는지 확인
+            NEEDS_INIT=false
+            if [ -f record.md ]; then
+              # record.md 헤더에서 사용자명 확인
+              HEADER_USER=$(grep "^# " record.md | head -1 | sed 's/# \(.*\) - Weekly Commit Challenge Record/\1/' | tr -d '\r\n')
+              if [ -n "$HEADER_USER" ] && [ "$HEADER_USER" != "$USERNAME" ]; then
+                echo "📝 다른 사용자($HEADER_USER) 기록 발견 - $USERNAME 기록으로 초기화합니다"
+                NEEDS_INIT=true
+              elif grep -q "tlqhrm" record.md && [ "$USERNAME" != "tlqhrm" ]; then
+                echo "📝 원본 사용자 기록 발견 - $USERNAME 기록으로 초기화합니다"  
+                NEEDS_INIT=true
+              fi
+            fi
+            
+            # record.json도 확인
+            if [ -f record.json ]; then
+              JSON_USER=$(cat record.json | grep -o '"username"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/"username"[[:space:]]*:[[:space:]]*"\([^"]*\)"/\1/')
+              if [ -n "$JSON_USER" ] && [ "$JSON_USER" != "$USERNAME" ]; then
+                echo "📝 record.json에서 다른 사용자($JSON_USER) 기록 발견 - 초기화 필요"
+                NEEDS_INIT=true
+              fi
+            fi
+            
+            if [ "$NEEDS_INIT" = true ]; then
+              
+              # 새로운 빈 record.md 생성
+              cat > record.md << EOF
+          # $USERNAME - Weekly Commit Challenge Record
+          
+          ## 📊 기록 테이블
+          
+          | ID | 기간 | 주차 | 커밋 수 | 성공 여부 |
+          | --- | --- | --- | --- | --- |
+          EOF
+              
+              # 빈 record.json 생성
+              cat > record.json << EOF
+          {
+            "username": "$USERNAME",
+            "avatarUrl": "${{ steps.check_commits.outputs.avatar_url }}",
+            "lastUpdated": "$(TZ='Asia/Seoul' date -Iseconds)",
+            "records": []
+          }
+          EOF
+              
+              # statistics.json도 초기화 (Fork 사용자용)
+              cat > statistics.json << EOF
+          {
+            "lastUpdated": "$(TZ='Asia/Seoul' date -Iseconds)",
+            "totalParticipants": 1,
+            "activeParticipants": 0,
+            "recordHolders": 0,
+            "weeklySuccessful": 0,
+            "averageStreak": 0,
+            "averageSuccessRate": 0,
+            "participants": [
+              {
+                "username": "$USERNAME",
+                "avatarUrl": "${{ steps.check_commits.outputs.avatar_url }}",
+                "lastPushed": "$(TZ='Asia/Seoul' date -Iseconds)",
+                "currentStreak": 0,
+                "maxStreak": 0,
+                "totalWeeks": 0,
+                "successRate": 0,
+                "currentWeekSuccess": false
+              }
+            ],
+            "rankingByStreak": [],
+            "rankingBySuccessRate": [],
+            "rankingByMaxStreak": []
+          }
+          EOF
+              
+              echo "✅ $USERNAME을 위한 새로운 기록 파일 생성 완료"
+            else
+              echo "ℹ️ 이미 $USERNAME의 기록이거나 초기화가 불필요합니다"
+            fi
+            
+            # Fork 사용자의 statistics 워크플로우 제거
+            if [ -f .github/workflows/collect-statistics.yml ]; then
+              echo "🗑️ Fork 사용자용으로 statistics 워크플로우를 제거합니다"
+              rm -f .github/workflows/collect-statistics.yml
+              echo "✅ collect-statistics.yml 워크플로우 제거 완료"
+            fi
+          else
+            echo "ℹ️ 원본 레포지토리 - 초기화 스킵"
+          fi
+
       - name: Update record.md
         run: |
           COMMIT_COUNT="${{ steps.check_commits.outputs.commit_count }}"
@@ -239,10 +334,20 @@ jobs:
                   if [[ "$line" == "|"*"|"*"|"*"|"* && "$line" != *"기간"* && "$line" != *"---"* ]]; then
                     if [ "$first_record" = false ]; then echo '    ,'; fi
                     parts=($(echo "$line" | tr '|' ' '))
-                    period="${parts[1]// /}"
-                    week="${parts[2]// /}"
-                    commits="${parts[3]// /}"
-                    status="${parts[4]// /}"
+                    # ID 컬럼이 있는지 확인 (5개 컬럼이면 ID 있음, 4개면 없음)
+                    if [ ${#parts[@]} -eq 6 ]; then
+                      # ID 포함 (| ID | 기간 | 주차 | 커밋 수 | 성공 여부 |)
+                      period="${parts[2]// /}"
+                      week="${parts[3]// /}"
+                      commits="${parts[4]// /}"
+                      status="${parts[5]// /}"
+                    else
+                      # ID 없음 (| 기간 | 주차 | 커밋 수 | 성공 여부 |)
+                      period="${parts[1]// /}"
+                      week="${parts[2]// /}"
+                      commits="${parts[3]// /}"
+                      status="${parts[4]// /}"
+                    fi
                     success="false"
                     if [[ "$status" == *"✅"* && "$status" != *"🔄"* ]]; then
                       success="true"
@@ -292,19 +397,41 @@ jobs:
               echo ""
               echo "## 📊 기록 테이블"
               echo ""
-              echo "| 기간 | 주차 | 커밋 수 | 성공 여부 |"
-              echo "| --- | --- | --- | --- |"
+              echo "| ID | 기간 | 주차 | 커밋 수 | 성공 여부 |"
+              echo "| --- | --- | --- | --- | --- |"
             } > record.md
             
             # 기존 기록이 있다면 추가 (오름차순 유지)
+            NEXT_ID=1
             if [ -f record.md.bak ]; then
-              # 기존 데이터 추출하여 추가
-              grep "^|.*|.*|.*|.*|$" record.md.bak | grep -v "기간\|---" >> record.md || true
+              # 기존 데이터 추출하여 추가 (ID 포함)
+              while IFS= read -r line; do
+                if [[ "$line" == "|"*"|"*"|"*"|"* && "$line" != *"ID"* && "$line" != *"---"* ]]; then
+                  parts=($(echo "$line" | tr '|' ' '))
+                  # ID 컬럼이 있는지 확인
+                  if [ ${#parts[@]} -eq 6 ]; then
+                    # ID 이미 있음 - 새 ID로 교체
+                    period="${parts[2]// /}"
+                    week="${parts[3]// /}"
+                    commits="${parts[4]// /}"
+                    status="${parts[5]// /}"
+                  else
+                    # ID 없음 - 추가
+                    period="${parts[1]// /}"
+                    week="${parts[2]// /}"
+                    commits="${parts[3]// /}"
+                    status="${parts[4]// /}"
+                  fi
+                  echo "| $NEXT_ID | $period | $week | $commits | $status |" >> record.md
+                  NEXT_ID=$((NEXT_ID + 1))
+                fi
+              done < <(grep "^|.*|.*|.*|.*" record.md.bak | grep -v "ID\|---" || true)
             fi
             
             # 새 기록들 추가 (지난주 먼저, 이번주 나중에)
-            echo "| $WEEK_PERIOD | ${YEAR}년 ${WEEK_NUM}주차 | $COMMIT_COUNT | $STATUS_EMOJI |" >> record.md
-            echo "| $THIS_WEEK_PERIOD | ${YEAR}년 ${THIS_WEEK_NUM}주차 | $TODAY_COMMIT_COUNT | $TODAY_STATUS_EMOJI |" >> record.md
+            echo "| $NEXT_ID | $WEEK_PERIOD | ${YEAR}년 ${WEEK_NUM}주차 | $COMMIT_COUNT | $STATUS_EMOJI |" >> record.md
+            NEXT_ID=$((NEXT_ID + 1))
+            echo "| $NEXT_ID | $THIS_WEEK_PERIOD | ${YEAR}년 ${THIS_WEEK_NUM}주차 | $TODAY_COMMIT_COUNT | $TODAY_STATUS_EMOJI |" >> record.md
             
           else
             # 화~일요일: 전체 기록 포함
@@ -322,10 +449,20 @@ jobs:
                   if [[ "$line" == "|"*"|"*"|"*"|"* && "$line" != *"기간"* && "$line" != *"---"* ]]; then
                     if [ "$first_record" = false ]; then echo '    ,'; fi
                     parts=($(echo "$line" | tr '|' ' '))
-                    period="${parts[1]// /}"
-                    week="${parts[2]// /}"
-                    commits="${parts[3]// /}"
-                    status="${parts[4]// /}"
+                    # ID 컬럼이 있는지 확인 (5개 컬럼이면 ID 있음, 4개면 없음)
+                    if [ ${#parts[@]} -eq 6 ]; then
+                      # ID 포함 (| ID | 기간 | 주차 | 커밋 수 | 성공 여부 |)
+                      period="${parts[2]// /}"
+                      week="${parts[3]// /}"
+                      commits="${parts[4]// /}"
+                      status="${parts[5]// /}"
+                    else
+                      # ID 없음 (| 기간 | 주차 | 커밋 수 | 성공 여부 |)
+                      period="${parts[1]// /}"
+                      week="${parts[2]// /}"
+                      commits="${parts[3]// /}"
+                      status="${parts[4]// /}"
+                    fi
                     success="false"
                     if [[ "$status" == *"✅"* && "$status" != *"🔄"* ]]; then
                       success="true"
@@ -365,24 +502,49 @@ jobs:
               echo ""
               echo "## 📊 기록 테이블"
               echo ""
-              echo "| 기간 | 주차 | 커밋 수 | 성공 여부 |"
-              echo "| --- | --- | --- | --- |"
+              echo "| ID | 기간 | 주차 | 커밋 수 | 성공 여부 |"
+              echo "| --- | --- | --- | --- | --- |"
             } > record.md
             
             # 기존 기록이 있다면 추가 (오름차순 유지)
+            NEXT_ID=1
             if [ -f record.md.bak ]; then
-              # 기존 데이터 추출하여 추가
-              grep "^|.*|.*|.*|.*|$" record.md.bak | grep -v "기간\|---" >> record.md || true
+              # 기존 데이터 추출하여 추가 (ID 포함)
+              while IFS= read -r line; do
+                if [[ "$line" == "|"*"|"*"|"*"|"* && "$line" != *"ID"* && "$line" != *"---"* ]]; then
+                  parts=($(echo "$line" | tr '|' ' '))
+                  # ID 컬럼이 있는지 확인
+                  if [ ${#parts[@]} -eq 6 ]; then
+                    # ID 이미 있음 - 새 ID로 교체
+                    period="${parts[2]// /}"
+                    week="${parts[3]// /}"
+                    commits="${parts[4]// /}"
+                    status="${parts[5]// /}"
+                  else
+                    # ID 없음 - 추가
+                    period="${parts[1]// /}"
+                    week="${parts[2]// /}"
+                    commits="${parts[3]// /}"
+                    status="${parts[4]// /}"
+                  fi
+                  echo "| $NEXT_ID | $period | $week | $commits | $status |" >> record.md
+                  NEXT_ID=$((NEXT_ID + 1))
+                fi
+              done < <(grep "^|.*|.*|.*|.*" record.md.bak | grep -v "ID\|---" || true)
             fi
             
             # 새 기록 추가
-            echo "| $WEEK_PERIOD | ${YEAR}년 ${WEEK_NUM}주차 | $COMMIT_COUNT | $STATUS_EMOJI |" >> record.md
+            echo "| $NEXT_ID | $WEEK_PERIOD | ${YEAR}년 ${WEEK_NUM}주차 | $COMMIT_COUNT | $STATUS_EMOJI |" >> record.md
           fi
 
       - name: Commit changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          
+          # 모든 변경사항 추가 (삭제된 파일 포함)
+          git add -A
+          
           # 월요일인 경우 추가 파일도 포함
           if [ "${{ steps.check_commits.outputs.period_type }}" = "지난주" ]; then
             git add record.md record.json record_last_week.json

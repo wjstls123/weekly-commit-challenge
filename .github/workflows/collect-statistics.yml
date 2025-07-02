@@ -2,7 +2,7 @@ name: Collect Fork Statistics
 
 on:
   schedule:
-    - cron: '0 * * * *'  # 매시간 실행
+    - cron: '*/10 * * * *'  # 10분마다 실행
   workflow_dispatch:  # 수동 실행 가능
 
 jobs:
@@ -131,6 +131,13 @@ jobs:
                                       const jsonContent = Buffer.from(jsonResponse.content, 'base64').toString();
                                       const recordData = JSON.parse(jsonContent);
                                       
+                                      // 데이터 소유자 검증: record.json의 username이 fork 소유자와 일치하는지 확인
+                                      const dataOwner = recordData.username;
+                                      if (dataOwner && dataOwner !== fork.owner.login) {
+                                          console.log(`${fork.owner.login}: 다른 사용자(${dataOwner})의 데이터를 포함하고 있어 제외됨`);
+                                          return; // 이 fork는 통계에서 제외
+                                      }
+                                      
                                       if (recordData.records && recordData.records.length > 0) {
                                           const records = recordData.records;
                                           let currentStreak = 0;
@@ -170,7 +177,8 @@ jobs:
                                               maxStreak: maxStreak,
                                               totalWeeks: records.length,
                                               successRate: successRate,
-                                              currentWeekSuccess: currentWeekSuccess
+                                              currentWeekSuccess: currentWeekSuccess,
+                                              currentWeekCommits: lastRecord ? lastRecord.commits : 0
                                           };
                                           
                                           if (currentWeekSuccess) stats.weeklySuccessful++;
@@ -191,6 +199,16 @@ jobs:
                                       // record.md 내용 분석
                                       const content = Buffer.from(recordResponse.content, 'base64').toString();
                                       const lines = content.split('\\n');
+                                      
+                                      // 데이터 소유자 검증: record.md 헤더에서 username 확인
+                                      const headerLine = lines.find(line => line.includes('# ') && line.includes(' - Weekly Commit Challenge Record'));
+                                      if (headerLine) {
+                                          const dataOwner = headerLine.split(' - Weekly Commit Challenge Record')[0].replace('# ', '').trim();
+                                          if (dataOwner && dataOwner !== fork.owner.login) {
+                                              console.log(`${fork.owner.login}: 다른 사용자(${dataOwner})의 데이터를 포함하고 있어 제외됨`);
+                                              return; // 이 fork는 통계에서 제외
+                                          }
+                                      }
                                       let currentStreak = 0;
                                       let totalWeeks = 0;
                                       let successWeeks = 0;
@@ -198,17 +216,37 @@ jobs:
                                       
                                       // 상세한 파싱으로 최장 연속 주차 계산
                                       const records = [];
+                                      let latestCommitCount = 0;
                                       for (const line of lines) {
                                           if (line.includes('|') && !line.includes('---') && !line.includes('기간')) {
                                               totalWeeks++;
                                               const isSuccess = line.includes('✅');
-                                              records.push({ success: isSuccess });
+                                              
+                                              // 커밋 수 추출 (테이블 구조에 따라)
+                                              const parts = line.split('|').map(p => p.trim());
+                                              let commits = 0;
+                                              if (parts.length >= 6) {
+                                                  // ID | 기간 | 주차 | 커밋 수 | 성공 여부
+                                                  commits = parseInt(parts[4]) || 0;
+                                              } else if (parts.length >= 5) {
+                                                  // 기간 | 주차 | 커밋 수 | 성공 여부
+                                                  commits = parseInt(parts[3]) || 0;
+                                              }
+                                              
+                                              // 최신 기록을 계속 업데이트 (마지막에 파싱된 것이 최신)
+                                              latestCommitCount = commits;
+                                              
+                                              records.push({ success: isSuccess, commits: commits });
                                               
                                               if (isSuccess) {
                                                   successWeeks++;
-                                                  if (totalWeeks === 1) currentWeekSuccess = true;
                                               }
                                           }
+                                      }
+                                      
+                                      // 최신 기록의 성공 여부 확인 (마지막 기록)
+                                      if (records.length > 0) {
+                                          currentWeekSuccess = records[records.length - 1].success;
                                       }
                                       
                                       // 현재 연속 주차 및 최장 연속 주차 계산
@@ -250,7 +288,8 @@ jobs:
                                           maxStreak,
                                           totalWeeks,
                                           successRate,
-                                          currentWeekSuccess
+                                          currentWeekSuccess,
+                                          currentWeekCommits: latestCommitCount
                                       };
                                       console.log(`${fork.owner.login}: record.md 사용`);
                                   }
