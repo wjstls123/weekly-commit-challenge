@@ -155,13 +155,10 @@ function showProfileUI(data) {
         <div class="profile-header">
             <img class="profile-avatar" src="${data.avatarUrl}" alt="프로필 이미지">
             <div class="profile-info">
-                <h3>${data.username}</h3>
+                <h3>${data.username} <a href="https://github.com/${data.username}" target="_blank" class="github-link">https://github.com/${data.username}</a></h3>
                 <p class="profile-status ${data.currentWeekSuccess ? 'success' : 'progress'}">
                     ${data.currentWeekSuccess ? '✅ 이번 주 성공' : `🔄 진행중 (${data.currentWeekCommits}개)`}
                 </p>
-                <a href="https://github.com/${data.username}" target="_blank" class="github-button">
-                    GitHub
-                </a>
             </div>
         </div>
         
@@ -795,13 +792,10 @@ async function toggleRankingDetail(username, rankIndex) {
                     <div class="detail-header">
                         <img class="detail-avatar" src="${data.avatarUrl}" alt="${data.username}">
                         <div class="detail-info">
-                            <h4>${data.username}</h4>
+                            <h4>${data.username} <a href="https://github.com/${data.username}" target="_blank" class="github-link">https://github.com/${data.username}</a></h4>
                             <p class="detail-status ${statusClass}">
                                 ${statusText}
                             </p>
-                            <a href="https://github.com/${data.username}" target="_blank" class="github-button">
-                                GitHub
-                            </a>
                         </div>
                         <button class="close-detail" onclick="closeRankingDetail(${rankIndex})">×</button>
                     </div>

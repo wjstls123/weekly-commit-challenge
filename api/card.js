@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  const { username, theme = 'default' } = req.query;
+  const { username } = req.query;
 
   if (!username) {
     return res.status(400).json({ error: 'Username is required' });
@@ -122,11 +122,11 @@ export default async function handler(req, res) {
     }
 
     // Generate SVG card
-    const svg = generateSVGCard(username, stats, theme, defaultAvatarUrl);
+    const svg = generateSVGCard(username, stats, defaultAvatarUrl);
 
     res.setHeader('Content-Type', 'image/svg+xml');
     res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=300'); // Cache for 5 minutes
-    res.setHeader('ETag', `"${Buffer.from(username + theme + JSON.stringify(stats)).toString('base64')}"`);
+    res.setHeader('ETag', `"${Buffer.from(username + JSON.stringify(stats)).toString('base64')}"`);
     res.status(200).send(svg);
 
   } catch (error) {
@@ -135,35 +135,15 @@ export default async function handler(req, res) {
   }
 }
 
-function generateSVGCard(username, stats, theme, avatarUrl) {
-  const themes = {
-    default: {
-      bg: '#0d1117',
-      border: '#30363d',
-      title: '#58a6ff',
-      text: '#c9d1d9',
-      subtext: '#8b949e',
-      accent: '#238636'
-    },
-    light: {
-      bg: '#ffffff',
-      border: '#d0d7de',
-      title: '#0969da',
-      text: '#24292f',
-      subtext: '#656d76',
-      accent: '#1a7f37'
-    },
-    github_dark: {
-      bg: '#0d1117',
-      border: '#21262d',
-      title: '#79c0ff',
-      text: '#e6edf3',
-      subtext: '#7d8590',
-      accent: '#2ea043'
-    }
+function generateSVGCard(username, stats, avatarUrl) {
+  const colors = {
+    bg: '#0d1117',
+    border: '#30363d',
+    title: '#58a6ff',
+    text: '#c9d1d9',
+    subtext: '#8b949e',
+    accent: '#238636'
   };
-
-  const colors = themes[theme] || themes.default;
   
   const statusColor = stats.currentWeekSuccess ? colors.accent : '#f85149';
   const statusText = stats.currentWeekSuccess ? '진행중' : '미참여';

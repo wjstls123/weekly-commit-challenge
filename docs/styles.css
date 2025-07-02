@@ -1821,36 +1821,18 @@ footer {
     color: #58a6ff;
 }
 
-/* GitHub 버튼 스타일 */
-.github-button {
-    display: inline-block;
-    background: linear-gradient(135deg, #238636, #2ea043);
-    color: #ffffff;
-    text-decoration: none;
-    font-size: 0.85em;
-    font-weight: 600;
-    margin-top: 10px;
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: none;
-    transition: all 0.15s ease;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(35, 134, 54, 0.2);
-    position: relative;
-    overflow: hidden;
+/* GitHub 링크 스타일 */
+.github-link {
+    color: #8b949e;
+    text-decoration: underline;
+    font-size: 0.75em;
+    font-weight: normal;
+    margin-left: 8px;
 }
 
-.github-button:hover {
-    background: linear-gradient(135deg, #2ea043, #3fb950);
-    color: #ffffff;
-    text-decoration: none;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(35, 134, 54, 0.3);
-}
-
-.github-button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(35, 134, 54, 0.2);
+.github-link:hover {
+    color: #58a6ff;
+    text-decoration: underline;
 }
 
 @keyframes fadeIn {

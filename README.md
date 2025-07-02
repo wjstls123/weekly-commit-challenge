@@ -33,21 +33,6 @@ Fork한 레포지토리의 Actions 탭에서 워크플로우를 활성화하세�
 ![Weekly Commit Challenge](https://weekly-commit-challenge.vercel.app/api/card?username=YOUR_USERNAME)
 ```
 
-### 테마 옵션
-
-다양한 테마를 선택할 수 있습니다:
-
-```markdown
-<!-- 기본 다크 테마 -->
-![Weekly Commit Challenge](https://weekly-commit-challenge.vercel.app/api/card?username=YOUR_USERNAME&theme=default)
-
-<!-- 라이트 테마 -->
-![Weekly Commit Challenge](https://weekly-commit-challenge.vercel.app/api/card?username=YOUR_USERNAME&theme=light)
-
-<!-- GitHub 다크 테마 -->
-![Weekly Commit Challenge](https://weekly-commit-challenge.vercel.app/api/card?username=YOUR_USERNAME&theme=github_dark)
-```
-
 ### 카드 예시
 
 ![Weekly Commit Challenge](https://weekly-commit-challenge.vercel.app/api/card?username=tlqhrm)
@@ -58,14 +43,6 @@ Fork한 레포지토리의 Actions 탭에서 워크플로우를 활성화하세�
 - 총 참여 주차
 - 성공률
 - 현재 진행 상태
-
-### 다른 테마 예시
-
-**라이트 테마:**
-![Weekly Commit Challenge Light](https://weekly-commit-challenge.vercel.app/api/card?username=tlqhrm&theme=light)
-
-**GitHub 다크 테마:**
-![Weekly Commit Challenge GitHub Dark](https://weekly-commit-challenge.vercel.app/api/card?username=tlqhrm&theme=github_dark)
 
 
 ## 🏆 챌린지 규칙
