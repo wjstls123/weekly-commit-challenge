@@ -19,7 +19,9 @@
       "Bash(grep:*)",
       "Bash(mkdir:*)",
       "Bash(git push:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(git rm:*)",
+      "Bash(git rebase:*)"
     ],
     "deny": []
   }
