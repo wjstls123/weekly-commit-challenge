@@ -1125,11 +1125,17 @@ function getCachedData(key, maxAge) {
         if (cached) {
             const data = JSON.parse(cached);
             const now = Date.now();
-            if (now - data.timestamp < maxAge) {
+            const age = now - data.timestamp;
+            console.log(`캐시 확인 [${key}]: 나이=${Math.round(age/1000)}초, 최대=${Math.round(maxAge/1000)}초`);
+            if (age < maxAge) {
+                console.log(`✅ 캐시 히트: ${key}`);
                 return data.value;
             } else {
+                console.log(`❌ 캐시 만료: ${key}`);
                 localStorage.removeItem(key);
             }
+        } else {
+            console.log(`❌ 캐시 없음: ${key}`);
         }
     } catch (error) {
         console.log('캐시 읽기 실패:', error);
@@ -1145,6 +1151,7 @@ function setCachedData(key, value) {
             timestamp: Date.now()
         };
         localStorage.setItem(key, JSON.stringify(data));
+        console.log(`💾 캐시 저장: ${key}`);
     } catch (error) {
         console.log('캐시 저장 실패:', error);
     }
@@ -1196,10 +1203,39 @@ function calculateStatsFromRecords(records) {
     };
 }
 
+// 캐시 상태 디버깅 함수
+function debugCacheStatus() {
+    console.log('=== 캐시 상태 확인 ===');
+    const cacheKeys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.includes('user_') || key.includes('stats_') || key.includes('fork_') || key.includes('record_')) {
+            cacheKeys.push(key);
+        }
+    }
+    
+    cacheKeys.forEach(key => {
+        const cached = localStorage.getItem(key);
+        if (cached) {
+            try {
+                const data = JSON.parse(cached);
+                const age = Date.now() - data.timestamp;
+                console.log(`${key}: ${Math.round(age/1000)}초 전 저장됨`);
+            } catch (e) {
+                console.log(`${key}: 파싱 오류`);
+            }
+        }
+    });
+    console.log('==================');
+}
+
 // 저장된 프로필 로드
 function loadSavedProfile() {
     const savedUsername = localStorage.getItem('weekly-commit-username');
     if (savedUsername) {
+        console.log('저장된 사용자명 발견:', savedUsername);
+        debugCacheStatus(); // 캐시 상태 확인
+        
         const profileInput = document.getElementById('profileInput');
         if (profileInput) {
             profileInput.value = savedUsername;
@@ -1208,3 +1244,6 @@ function loadSavedProfile() {
         }
     }
 }
+
+// 전역 함수로 캐시 상태 확인 가능하도록
+window.debugCache = debugCacheStatus;
