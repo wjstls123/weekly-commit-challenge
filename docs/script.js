@@ -894,9 +894,11 @@ async function fetchUserData(username) {
     }
     
     if (recordJsonResponse) {
+        console.log('record.json 응답 처리 시작');
         try {
             const jsonContent = atob(recordJsonResponse.content);
             const recordData = JSON.parse(jsonContent);
+            console.log('record.json 파싱 성공:', recordData);
             
             // 전체 기록에서 통계 계산
             const records = recordData.records || [];
@@ -924,6 +926,8 @@ async function fetchUserData(username) {
         } catch (parseError) {
             console.log('record.json 파싱 실패:', parseError.message);
         }
+    } else {
+        console.log('record.json 응답 없음');
     }
 
     // 통계 데이터에서 사용자 정보 확인 (캐시 적용)
@@ -1025,6 +1029,7 @@ async function fetchUserData(username) {
     }
 
     // 두 파일 모두 없는 경우 기본 데이터 반환
+    console.log('모든 데이터 소스 실패, 기본 데이터 반환');
     const now = new Date();
     const getWeekNumber = (date) => {
         const target = new Date(date.valueOf());
@@ -1035,7 +1040,7 @@ async function fetchUserData(username) {
         return Math.ceil(dayDiff / 7);
     };
 
-    return {
+    const defaultData = {
         username: username,
         avatarUrl: defaultAvatarUrl,
         currentYear: now.getFullYear(),
@@ -1048,6 +1053,9 @@ async function fetchUserData(username) {
         totalWeeks: 0,
         recentRecords: []
     };
+    
+    console.log('기본 데이터 생성:', defaultData);
+    return defaultData;
 }
 
 // 로컬스토리지 캐시 함수들
