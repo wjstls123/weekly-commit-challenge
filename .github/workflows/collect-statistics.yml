@@ -1,0 +1,219 @@
+name: Collect Fork Statistics
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # 매시간 실행
+  workflow_dispatch:  # 수동 실행 가능
+
+jobs:
+  collect-statistics:
+    runs-on: ubuntu-latest
+    # fork에서는 실행하지 않음
+    if: github.repository == 'tlqhrm/weekly-commit-challenge'
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Collect fork statistics and save to issue
+        id: collect_stats
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node << 'EOF'
+          const fs = require('fs');
+          const https = require('https');
+          
+          // GitHub API 호출 함수 (GET/POST/PATCH 지원)
+          function githubAPI(path, method = 'GET', body = null) {
+              return new Promise((resolve, reject) => {
+                  const options = {
+                      hostname: 'api.github.com',
+                      path: path,
+                      method: method,
+                      headers: {
+                          'User-Agent': 'weekly-commit-challenge',
+                          'Authorization': `token ${process.env.GITHUB_TOKEN}`,
+                          'Accept': 'application/vnd.github.v3+json'
+                      }
+                  };
+                  
+                  if (body) {
+                      options.headers['Content-Type'] = 'application/json';
+                  }
+                  
+                  const req = https.request(options, (res) => {
+                      let data = '';
+                      res.on('data', chunk => data += chunk);
+                      res.on('end', () => {
+                          if (res.statusCode >= 200 && res.statusCode < 300) {
+                              resolve(data ? JSON.parse(data) : {});
+                          } else {
+                              reject(new Error(`API Error: ${res.statusCode} - ${data}`));
+                          }
+                      });
+                  });
+                  
+                  req.on('error', reject);
+                  
+                  if (body) {
+                      req.write(JSON.stringify(body));
+                  }
+                  
+                  req.end();
+              });
+          }
+          
+          async function collectStatistics() {
+              console.log('통계 수집 시작...');
+              
+              const stats = {
+                  lastUpdated: new Date().toISOString(),
+                  totalParticipants: 0,
+                  activeParticipants: 0,
+                  recordHolders: 0,
+                  weeklySuccessful: 0,
+                  participants: []
+              };
+              
+              try {
+                  // Fork 리스트 가져오기
+                  let page = 1;
+                  let allForks = [];
+                  
+                  while (true) {
+                      const forks = await githubAPI(`/repos/tlqhrm/weekly-commit-challenge/forks?page=${page}&per_page=100`);
+                      if (forks.length === 0) break;
+                      allForks.push(...forks);
+                      if (forks.length < 100) break;
+                      page++;
+                  }
+                  
+                  stats.totalParticipants = allForks.length;
+                  console.log(`총 ${allForks.length}개의 fork 발견`);
+                  
+                  // 활성 참여자 계산
+                  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+                  stats.activeParticipants = allForks.filter(fork => 
+                      new Date(fork.pushed_at) > thirtyDaysAgo
+                  ).length;
+                  
+                  // 각 fork의 record.md 확인 (배치 처리)
+                  for (let i = 0; i < allForks.length; i += 5) {
+                      const batch = allForks.slice(i, i + 5);
+                      
+                      await Promise.all(batch.map(async (fork) => {
+                          try {
+                              // record.md 존재 확인
+                              const recordResponse = await githubAPI(
+                                  `/repos/${fork.owner.login}/${fork.name}/contents/record.md`
+                              );
+                              
+                              if (recordResponse) {
+                                  stats.recordHolders++;
+                                  
+                                  // record.md 내용 분석
+                                  const content = Buffer.from(recordResponse.content, 'base64').toString();
+                                  const lines = content.split('\\n');
+                                  let currentStreak = 0;
+                                  let totalWeeks = 0;
+                                  let currentWeekSuccess = false;
+                                  
+                                  // 간단한 파싱
+                                  for (const line of lines) {
+                                      if (line.includes('|') && !line.includes('---') && !line.includes('기간')) {
+                                          totalWeeks++;
+                                          if (line.includes('✅')) {
+                                              if (totalWeeks === 1) currentWeekSuccess = true;
+                                              if (currentStreak === totalWeeks - 1) currentStreak++;
+                                          }
+                                      }
+                                  }
+                                  
+                                  if (currentWeekSuccess) stats.weeklySuccessful++;
+                                  
+                                  stats.participants.push({
+                                      username: fork.owner.login,
+                                      avatarUrl: fork.owner.avatar_url,
+                                      lastPushed: fork.pushed_at,
+                                      currentStreak,
+                                      totalWeeks,
+                                      currentWeekSuccess
+                                  });
+                              }
+                          } catch (err) {
+                              console.error(`${fork.owner.login} 처리 실패:`, err.message);
+                          }
+                      }));
+                      
+                      // API 제한 대비 지연
+                      await new Promise(resolve => setTimeout(resolve, 500));
+                  }
+                  
+                  // 평균 연속 주차 계산
+                  if (stats.participants.length > 0) {
+                      const totalStreak = stats.participants.reduce((sum, p) => sum + p.currentStreak, 0);
+                      stats.averageStreak = Math.round(totalStreak / stats.participants.length * 10) / 10;
+                  }
+                  
+                  // Issue에 저장하기 위해 GitHub API 호출
+                  console.log('Issue에 통계 저장 중...');
+                  
+                  // 기존 통계 Issue 찾기
+                  const issues = await githubAPI('/repos/tlqhrm/weekly-commit-challenge/issues?labels=statistics&state=open');
+                  
+                  const issueBody = `# 📊 Fork 통계 (자동 업데이트)
+
+**마지막 업데이트:** ${new Date().toLocaleString('ko-KR', {timeZone: 'Asia/Seoul'})}
+
+## JSON 데이터
+
+\`\`\`json
+${JSON.stringify(stats, null, 2)}
+\`\`\`
+
+## 요약
+- 총 참여자: ${stats.totalParticipants}명
+- 활성 참여자: ${stats.activeParticipants}명
+- record.md 보유자: ${stats.recordHolders}명
+- 주간 성공자: ${stats.weeklySuccessful}명
+- 평균 연속 주차: ${stats.averageStreak}주`;
+                  
+                  if (issues.length > 0) {
+                      // 기존 Issue 업데이트
+                      const issueNumber = issues[0].number;
+                      await githubAPI(`/repos/tlqhrm/weekly-commit-challenge/issues/${issueNumber}`, 'PATCH', {
+                          title: '📊 Fork 통계 데이터',
+                          body: issueBody
+                      });
+                      console.log(`Issue #${issueNumber} 업데이트 완료`);
+                  } else {
+                      // 새 Issue 생성
+                      const newIssue = await githubAPI('/repos/tlqhrm/weekly-commit-challenge/issues', 'POST', {
+                          title: '📊 Fork 통계 데이터',
+                          body: issueBody,
+                          labels: ['statistics', 'automation']
+                      });
+                      console.log(`새 Issue #${newIssue.number} 생성 완료`);
+                  }
+                  
+                  console.log('통계 수집 및 저장 완료!');
+                  
+              } catch (error) {
+                  console.error('통계 수집 실패:', error);
+                  process.exit(1);
+              }
+          }
+          
+          collectStatistics();
+          EOF

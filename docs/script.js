@@ -385,7 +385,7 @@ function initSampleTabs() {
     });
 }
 
-// Fork 통계 로드
+// Fork 통계 로드 (정적 JSON 우선, 없으면 실시간)
 async function loadForkStatistics() {
     try {
         // 기본 통계 초기화
@@ -397,11 +397,41 @@ async function loadForkStatistics() {
         
         console.log('Fork 통계 로드 시작...');
         
-        // 1. Fork 리스트 가져오기
+        // 1. 먼저 Issue에서 통계 데이터 조회
+        try {
+            const response = await fetch('https://api.github.com/repos/tlqhrm/weekly-commit-challenge/issues?labels=statistics&state=open');
+            if (response.ok) {
+                const issues = await response.json();
+                
+                if (issues.length > 0) {
+                    const issue = issues[0];
+                    
+                    // Issue body에서 JSON 데이터 추출
+                    const jsonMatch = issue.body.match(/```json\n([\s\S]*?)\n```/);
+                    if (jsonMatch) {
+                        const stats = JSON.parse(jsonMatch[1]);
+                        
+                        // 마지막 업데이트가 2시간 이내인지 확인
+                        const lastUpdated = new Date(stats.lastUpdated);
+                        const hoursSince = (new Date() - lastUpdated) / (1000 * 60 * 60);
+                        
+                        if (hoursSince < 2) {
+                            console.log('Issue 캐시된 통계 사용');
+                            displayCachedStatistics(stats);
+                            return;
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.log('Issue 통계 데이터 없음, 실시간 수집 시작');
+        }
+        
+        // 2. 정적 파일이 없거나 오래되면 실시간 수집
         const forks = await getAllForks('tlqhrm', 'weekly-commit-challenge');
         console.log(`총 ${forks.length}개의 fork 발견`);
         
-        // 2. 기본 통계
+        // 기본 통계
         const now = new Date();
         const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         
@@ -413,10 +443,10 @@ async function loadForkStatistics() {
         document.getElementById('totalParticipants').textContent = forks.length;
         document.getElementById('activeParticipants').textContent = activeForks.length;
         
-        // 3. record.md 분석 (배치로 실행)
+        // record.md 분석 (배치로 실행)
         analyzeRecordFiles(forks);
         
-        // 4. 랭킹 데이터 수집 (비동기)
+        // 랭킹 데이터 수집 (비동기)
         setTimeout(() => {
             collectAndDisplayRanking();
         }, 1000);
@@ -559,6 +589,25 @@ function updateStatisticsUI(recordHolders, weeklySuccessful, totalStreak, validR
     
     const averageStreak = validRecords > 0 ? Math.round(totalStreak / validRecords * 10) / 10 : 0;
     document.getElementById('averageStreak').textContent = averageStreak + '주';
+}
+
+// 캐시된 통계 표시
+function displayCachedStatistics(stats) {
+    document.getElementById('totalParticipants').textContent = stats.totalParticipants || 0;
+    document.getElementById('activeParticipants').textContent = stats.activeParticipants || 0;
+    document.getElementById('recordHolders').textContent = stats.recordHolders || 0;
+    document.getElementById('weeklySuccessful').textContent = stats.weeklySuccessful || 0;
+    document.getElementById('averageStreak').textContent = (stats.averageStreak || 0) + '주';
+    
+    // 랭킹 데이터도 사용
+    if (stats.participants && stats.participants.length > 0) {
+        globalRankingData = stats.participants;
+        displayRanking('streak');
+    }
+    
+    // 마지막 업데이트 시간 표시 (선택사항)
+    const lastUpdated = new Date(stats.lastUpdated);
+    console.log(`통계 마지막 업데이트: ${lastUpdated.toLocaleString('ko-KR')}`);
 }
 
 // 랭킹 데이터 저장를 위한 전역 변수
