@@ -2,7 +2,7 @@ name: Weekly Commit Tracker
 
 on:
   schedule:
-    - cron: '0 * * * *'   # 매시간 정각 실행
+    - cron: '55 * * * *'   # 매시간 55분 실행
   workflow_dispatch:
 
 # 동시 실행 방지
@@ -23,213 +23,318 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check weekly commits
-        id: check_commits
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Get current time and week info
+        id: time_info
+        run: |
+          # 한국 시간 기준 현재 시각
+          CURRENT_DATE_KST=$(TZ='Asia/Seoul' date '+%Y-%m-%d')
+          CURRENT_WEEKDAY=$(TZ='Asia/Seoul' date '+%u')  # 1=월요일, 7=일요일
+          CURRENT_TIME_KST=$(TZ='Asia/Seoul' date '+%Y-%m-%d %H:%M:%S')
+          
+          echo "current_date=$CURRENT_DATE_KST" >> $GITHUB_OUTPUT
+          echo "current_weekday=$CURRENT_WEEKDAY" >> $GITHUB_OUTPUT
+          echo "current_time=$CURRENT_TIME_KST" >> $GITHUB_OUTPUT
+          
+          echo "📅 현재 시각 (KST): $CURRENT_TIME_KST"
+          echo "📅 현재 요일: $CURRENT_WEEKDAY (1=월요일, 7=일요일)"
+
+      - name: Calculate current week range
+        id: week_range
+        run: |
+          CURRENT_DATE="${{ steps.time_info.outputs.current_date }}"
+          CURRENT_WEEKDAY="${{ steps.time_info.outputs.current_weekday }}"
+          
+          # 이번 주 월요일 계산
+          DAYS_TO_MONDAY=$((CURRENT_WEEKDAY - 1))
+          WEEK_START=$(TZ='Asia/Seoul' date -d "$CURRENT_DATE - $DAYS_TO_MONDAY days" '+%Y-%m-%d')
+          
+          # 이번 주 일요일 계산
+          DAYS_TO_SUNDAY=$((7 - CURRENT_WEEKDAY))
+          WEEK_END=$(TZ='Asia/Seoul' date -d "$CURRENT_DATE + $DAYS_TO_SUNDAY days" '+%Y-%m-%d')
+          
+          # 주차 번호 계산 (ISO 8601 기준)
+          WEEK_NUMBER=$(node -e "
+            const date = new Date('$CURRENT_DATE');
+            const target = new Date(date.valueOf());
+            const dayNr = (date.getDay() + 6) % 7;
+            target.setDate(target.getDate() - dayNr + 3);
+            const jan4 = new Date(target.getFullYear(), 0, 4);
+            const dayDiff = (target - jan4) / 86400000;
+            console.log(1 + Math.floor(dayDiff / 7));
+          ")
+          
+          YEAR=$(TZ='Asia/Seoul' date '+%Y')
+          
+          echo "week_start=$WEEK_START" >> $GITHUB_OUTPUT
+          echo "week_end=$WEEK_END" >> $GITHUB_OUTPUT
+          echo "week_number=$WEEK_NUMBER" >> $GITHUB_OUTPUT
+          echo "year=$YEAR" >> $GITHUB_OUTPUT
+          
+          echo "📊 이번 주: $WEEK_START ~ $WEEK_END (${YEAR}년 ${WEEK_NUMBER}주차)"
+
+      - name: Check existing records
+        id: existing_records
+        run: |
+          USERNAME="${{ github.repository_owner }}"
+          
+          # record.json 파일이 있는지 확인
+          if [ -f record.json ]; then
+            echo "📋 기존 record.json 발견"
+            
+            # 마지막 기록의 주차 정보 추출
+            LAST_WEEK_START=$(cat record.json | jq -r '.records[-1].weekStart // empty')
+            LAST_WEEK_END=$(cat record.json | jq -r '.records[-1].weekEnd // empty')
+            RECORD_COUNT=$(cat record.json | jq '.records | length')
+            
+            echo "last_week_start=$LAST_WEEK_START" >> $GITHUB_OUTPUT
+            echo "last_week_end=$LAST_WEEK_END" >> $GITHUB_OUTPUT
+            echo "record_count=$RECORD_COUNT" >> $GITHUB_OUTPUT
+            echo "has_records=true" >> $GITHUB_OUTPUT
+            
+            echo "📊 기존 기록: $RECORD_COUNT개, 마지막 주: $LAST_WEEK_START ~ $LAST_WEEK_END"
+          else
+            echo "📋 기존 기록 없음 - 첫 번째 기록 생성 예정"
+            echo "last_week_start=" >> $GITHUB_OUTPUT
+            echo "last_week_end=" >> $GITHUB_OUTPUT
+            echo "record_count=0" >> $GITHUB_OUTPUT
+            echo "has_records=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check skip conditions
+        id: skip_check
+        run: |
+          CURRENT_WEEKDAY="${{ steps.time_info.outputs.current_weekday }}"
+          CURRENT_HOUR=$(TZ='Asia/Seoul' date '+%H')
+          
+          echo "▶️ 정상 실행 - 스킵 로직 제거"
+          echo "should_skip=false" >> $GITHUB_OUTPUT
+
+      - name: Check if new record needed
+        id: should_add_record
+        if: steps.skip_check.outputs.should_skip == 'false'
+        run: |
+          # 테스트된 로직 적용 (단순화)
+          CURRENT_WEEK_START="${{ steps.week_range.outputs.week_start }}"
+          LAST_WEEK_START="${{ steps.existing_records.outputs.last_week_start }}"
+          LAST_WEEK_END="${{ steps.existing_records.outputs.last_week_end }}"
+          HAS_RECORDS="${{ steps.existing_records.outputs.has_records }}"
+          CURRENT_DATE="${{ steps.time_info.outputs.current_date }}"
+          
+          echo "🔍 새 기록 추가 필요성 검사..."
+          echo "현재 주 시작: $CURRENT_WEEK_START"
+          echo "마지막 기록 주 시작: $LAST_WEEK_START"
+          echo "마지막 기록 주 종료: $LAST_WEEK_END"
+          
+          # 1. 첫 번째 기록이면 무조건 추가
+          if [ "$HAS_RECORDS" = "false" ]; then
+            echo "✅ 첫 번째 기록 - 추가 필요"
+            echo "should_add=true" >> $GITHUB_OUTPUT
+            echo "reason=첫 번째 기록" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # 2. 새로운 주인지 확인
+          if [ "$CURRENT_DATE" \> "$LAST_WEEK_END" ]; then
+            IS_NEW_WEEK=true
+            echo "새로운 주: true (현재: $CURRENT_DATE > 마지막 종료: $LAST_WEEK_END)"
+          else
+            IS_NEW_WEEK=false
+            echo "새로운 주: false (현재: $CURRENT_DATE <= 마지막 종료: $LAST_WEEK_END)"
+          fi
+          
+          # 3. 같은 주 기록이 있는지 확인
+          if [ "$CURRENT_WEEK_START" = "$LAST_WEEK_START" ]; then
+            IS_SAME_WEEK=true
+            echo "같은 주 기록 존재: true (현재 시작: $CURRENT_WEEK_START = 마지막 시작: $LAST_WEEK_START)"
+          else
+            IS_SAME_WEEK=false
+            echo "같은 주 기록 존재: false (현재 시작: $CURRENT_WEEK_START != 마지막 시작: $LAST_WEEK_START)"
+          fi
+          
+          # 4. 최종 판단: 새로운 주이고 같은 주 기록이 없을 때만 추가
+          if [ "$IS_NEW_WEEK" = true ] && [ "$IS_SAME_WEEK" = false ]; then
+            echo "✅ 새 기록 추가 필요 (새 주: $IS_NEW_WEEK, 같은 주 기록 없음: $([ "$IS_SAME_WEEK" = false ] && echo true || echo false))"
+            echo "should_add=true" >> $GITHUB_OUTPUT
+            echo "reason=새로운 주 시작" >> $GITHUB_OUTPUT
+          else
+            echo "❌ 새 기록 추가 불필요 (새 주: $IS_NEW_WEEK, 같은 주 기록 없음: $([ "$IS_SAME_WEEK" = false ] && echo true || echo false))"
+            echo "should_add=false" >> $GITHUB_OUTPUT
+            echo "reason=기존 주 업데이트" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get user info and commits
+        id: get_commits
+        if: steps.skip_check.outputs.should_skip == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           USERNAME="${{ github.repository_owner }}"
-          NOW=$(TZ='Asia/Seoul' date '+%Y-%m-%d %H:%M:%S')
-          CURRENT_WEEKDAY=$(TZ='Asia/Seoul' date '+%u')
-          
-          echo "Current time (KST): $NOW"
-          echo "Checking commits for user: $USERNAME"
-          
+          WEEK_START="${{ steps.week_range.outputs.week_start }}"
+          WEEK_END="${{ steps.week_range.outputs.week_end }}"
           EXCLUDED_REPOS="weekly-commit-challenge"
           
-          if [ "$CURRENT_WEEKDAY" -eq 1 ]; then
-            # 월요일: 지난주 월요일~일요일 (완료된 주)
-            WEEK_START=$(TZ='Asia/Seoul' date -d '7 days ago' '+%Y-%m-%d')
-            WEEK_END=$(TZ='Asia/Seoul' date -d '1 day ago' '+%Y-%m-%d')
-            PERIOD_TYPE="지난주"
-          else
-            # 화~일요일: 이번주 월요일~오늘 (진행중인 주)
-            DAYS_SINCE_MONDAY=$((CURRENT_WEEKDAY - 1))
-            WEEK_START=$(TZ='Asia/Seoul' date -d "$DAYS_SINCE_MONDAY days ago" '+%Y-%m-%d')
-            WEEK_END=$(TZ='Asia/Seoul' date '+%Y-%m-%d')
-            PERIOD_TYPE="이번주"
-          fi
+          echo "👤 사용자: $USERNAME"
+          echo "📅 조회 기간: $WEEK_START ~ $WEEK_END"
           
-          echo "Week start: $WEEK_START, Week end: $WEEK_END"
+          # 한국 시간을 UTC로 변환
+          SINCE_UTC=$(TZ='UTC' date -d "$WEEK_START 00:00:00 KST" -Iseconds)
+          UNTIL_UTC=$(TZ='UTC' date -d "$WEEK_END 23:59:59 KST" -Iseconds)
           
-          # 한국 시간을 UTC로 변환 (KST - 9시간)
-          SINCE_DATE_UTC=$(TZ='UTC' date -d "$WEEK_START 00:00:00 KST" -Iseconds)
-          UNTIL_DATE_UTC=$(TZ='UTC' date -d "$WEEK_END 23:59:59 KST" -Iseconds)
+          echo "🌍 UTC 조회 기간: $SINCE_UTC ~ $UNTIL_UTC"
           
-          echo "KST Week start: $WEEK_START 00:00:00"
-          echo "KST Week end: $WEEK_END 23:59:59"
-          echo "UTC Since date: $SINCE_DATE_UTC"
-          echo "UTC Until date: $UNTIL_DATE_UTC"
-          
-          # GraphQL 쿼리 생성 (유저 정보와 커밋 정보 함께 조회)
-          echo '{"query":"query($username: String!, $from: DateTime!, $to: DateTime!) { user(login: $username) { avatarUrl contributionsCollection(from: $from, to: $to) { totalCommitContributions commitContributionsByRepository { repository { name owner { login } } contributions { totalCount } } } } }","variables":{"username":"'$USERNAME'","from":"'$SINCE_DATE_UTC'","to":"'$UNTIL_DATE_UTC'"}}' > /tmp/query.json
+          # GraphQL 쿼리 생성
+          cat > query.json << EOF
+          {
+            "query": "query(\$username: String!, \$from: DateTime!, \$to: DateTime!) { user(login: \$username) { avatarUrl contributionsCollection(from: \$from, to: \$to) { totalCommitContributions commitContributionsByRepository { repository { name owner { login } } contributions { totalCount } } } } }",
+            "variables": {
+              "username": "$USERNAME",
+              "from": "$SINCE_UTC",
+              "to": "$UNTIL_UTC"
+            }
+          }
+          EOF
           
           # GraphQL API 호출
-          GRAPHQL_RESPONSE=$(curl -s -X POST \
+          RESPONSE=$(curl -s -X POST \
             -H "Authorization: bearer $GITHUB_TOKEN" \
             -H "Content-Type: application/json" \
-            -d @/tmp/query.json \
+            -d @query.json \
             "https://api.github.com/graphql")
           
-          echo "GraphQL Response: $GRAPHQL_RESPONSE"
+          echo "📡 GraphQL 응답: $RESPONSE"
           
-          # 유저 존재 여부 확인
-          USER_EXISTS=$(echo "$GRAPHQL_RESPONSE" | jq -r '.data.user // null')
+          # 사용자 존재 확인
+          USER_EXISTS=$(echo "$RESPONSE" | jq -r '.data.user // null')
           if [ "$USER_EXISTS" = "null" ]; then
-            echo "❌ GitHub 사용자 '$USERNAME'을 찾을 수 없습니다. 사용자명을 확인해주세요."
-            echo "commit_count=0" >> $GITHUB_OUTPUT
-            echo "period_start=$WEEK_START" >> $GITHUB_OUTPUT
-            echo "period_end=$WEEK_END" >> $GITHUB_OUTPUT
-            echo "period_type=$PERIOD_TYPE" >> $GITHUB_OUTPUT
+            echo "❌ 사용자 '$USERNAME'을 찾을 수 없습니다"
             echo "avatar_url=" >> $GITHUB_OUTPUT
-            echo "success=false" >> $GITHUB_OUTPUT
+            echo "commit_count=0" >> $GITHUB_OUTPUT
+            echo "user_exists=false" >> $GITHUB_OUTPUT
             exit 0
           fi
           
-          # 유저 아바타 URL 추출
-          AVATAR_URL=$(echo "$GRAPHQL_RESPONSE" | jq -r '.data.user.avatarUrl // ""')
+          # 아바타 URL 추출
+          AVATAR_URL=$(echo "$RESPONSE" | jq -r '.data.user.avatarUrl // ""')
           
-          # 커밋 수 계산
-          COMMIT_COUNT=$(echo "$GRAPHQL_RESPONSE" | jq --arg excluded "$EXCLUDED_REPOS" '
+          # 커밋 수 계산 (제외할 저장소 필터링)
+          COMMIT_COUNT=$(echo "$RESPONSE" | jq --arg excluded "$EXCLUDED_REPOS" '
             .data.user.contributionsCollection.commitContributionsByRepository
             | map(select(.repository.name as $repo_name | ($excluded | split(",") | index($repo_name) | not)))
             | map(.contributions.totalCount)
             | add // 0
           ')
           
-          if [ -z "$COMMIT_COUNT" ] || [ "$COMMIT_COUNT" = "null" ]; then
-            COMMIT_COUNT=0
-          fi
+          echo "👤 아바타 URL: $AVATAR_URL"
+          echo "📊 커밋 수: $COMMIT_COUNT"
           
-          echo "Commit count: $COMMIT_COUNT"
-          echo "Avatar URL: $AVATAR_URL"
-          
-          echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
-          echo "period_start=$WEEK_START" >> $GITHUB_OUTPUT
-          echo "period_end=$WEEK_END" >> $GITHUB_OUTPUT
-          echo "period_type=$PERIOD_TYPE" >> $GITHUB_OUTPUT
           echo "avatar_url=$AVATAR_URL" >> $GITHUB_OUTPUT
+          echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
+          echo "user_exists=true" >> $GITHUB_OUTPUT
+
+      - name: Update or create record
+        if: steps.skip_check.outputs.should_skip == 'false' && (steps.should_add_record.outputs.should_add == 'true' || steps.existing_records.outputs.has_records == 'true')
+        run: |
+          USERNAME="${{ github.repository_owner }}"
+          AVATAR_URL="${{ steps.get_commits.outputs.avatar_url }}"
+          COMMIT_COUNT="${{ steps.get_commits.outputs.commit_count }}"
+          WEEK_START="${{ steps.week_range.outputs.week_start }}"
+          WEEK_END="${{ steps.week_range.outputs.week_end }}"
+          WEEK_NUMBER="${{ steps.week_range.outputs.week_number }}"
+          YEAR="${{ steps.week_range.outputs.year }}"
+          SHOULD_ADD="${{ steps.should_add_record.outputs.should_add }}"
+          REASON="${{ steps.should_add_record.outputs.reason }}"
           
+          # 성공 여부 판단
           if [ $COMMIT_COUNT -gt 0 ]; then
-            echo "success=true" >> $GITHUB_OUTPUT
+            SUCCESS="true"
+            STATUS="✅ 성공"
           else
-            echo "success=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Calculate week number
-        id: week_number
-        run: |
-          YEAR=$(TZ='Asia/Seoul' date '+%Y')
-          WEEK_NUMBER=$(node -e "
-            // 한국 시간 기준으로 주차 계산
-            const now = new Date();
-            const kstOffset = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
-            const kstNow = new Date(now.getTime() + kstOffset);
-            
-            const target = new Date(kstNow.valueOf());
-            const dayNr = (target.getDay() + 6) % 7; // 월요일을 0으로
-            target.setDate(target.getDate() - dayNr + 3); // 목요일로 이동
-            const jan4 = new Date(target.getFullYear(), 0, 4); // 1월 4일
-            const dayDiff = (target - jan4) / 86400000;
-            console.log(Math.ceil(dayDiff / 7));
-          ")
-          
-          echo "week_number=$WEEK_NUMBER" >> $GITHUB_OUTPUT
-          echo "Year: $YEAR, Week: $WEEK_NUMBER (KST 기준)"
-
-      - name: Check today commits (Monday only)
-        id: check_today
-        if: steps.check_commits.outputs.period_type == '지난주'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          USERNAME="${{ github.repository_owner }}"
-          EXCLUDED_REPOS="weekly-commit-challenge"
-          
-          # 오늘(월요일) 데이터 수집
-          TODAY=$(TZ='Asia/Seoul' date '+%Y-%m-%d')
-          
-          echo "Collecting today's commits: $TODAY"
-          
-          # 한국 시간을 UTC로 변환
-          SINCE_DATE_UTC=$(TZ='UTC' date -d "$TODAY 00:00:00 KST" -Iseconds)
-          UNTIL_DATE_UTC=$(TZ='UTC' date -d "$TODAY 23:59:59 KST" -Iseconds)
-          
-          # GraphQL 쿼리 생성
-          echo '{\"query\":\"query($username: String!, $from: DateTime!, $to: DateTime!) { user(login: $username) { avatarUrl contributionsCollection(from: $from, to: $to) { totalCommitContributions commitContributionsByRepository { repository { name owner { login } } contributions { totalCount } } } } }\",\"variables\":{\"username\":\"'$USERNAME'\",\"from\":\"'$SINCE_DATE_UTC'\",\"to\":\"'$UNTIL_DATE_UTC'\"}}' > /tmp/today_query.json
-          
-          # GraphQL API 호출
-          GRAPHQL_RESPONSE=$(curl -s -X POST \
-            -H \"Authorization: bearer $GITHUB_TOKEN\" \
-            -H \"Content-Type: application/json\" \
-            -d @/tmp/today_query.json \
-            \"https://api.github.com/graphql\")
-          
-          # 유저 존재 여부 확인
-          USER_EXISTS=$(echo \"$GRAPHQL_RESPONSE\" | jq -r '.data.user // null')
-          if [ \"$USER_EXISTS\" = \"null\" ]; then
-            echo \"❌ GitHub 사용자 '$USERNAME'을 찾을 수 없습니다.\"
-            TODAY_COMMIT_COUNT=0
-          else
-            # 커밋 수 계산
-            TODAY_COMMIT_COUNT=$(echo \"$GRAPHQL_RESPONSE\" | jq --arg excluded \"$EXCLUDED_REPOS\" '
-              .data.user.contributionsCollection.commitContributionsByRepository
-              | map(select(.repository.name as $repo_name | ($excluded | split(\",\") | index($repo_name) | not)))
-              | map(.contributions.totalCount)
-              | add // 0
-            ')
-            
-            if [ -z \"$TODAY_COMMIT_COUNT\" ] || [ \"$TODAY_COMMIT_COUNT\" = \"null\" ]; then
-              TODAY_COMMIT_COUNT=0
-            fi
+            SUCCESS="false"
+            STATUS="❌ 실패"
           fi
           
-          echo "Today's commit count: $TODAY_COMMIT_COUNT"
+          # 주차 기간 표시 형식 (MM/DD)
+          PERIOD_START=$(TZ='Asia/Seoul' date -d "$WEEK_START" '+%m/%d')
+          PERIOD_END=$(TZ='Asia/Seoul' date -d "$WEEK_END" '+%m/%d')
+          PERIOD="$PERIOD_START ~ $PERIOD_END"
           
-          echo "today_commit_count=$TODAY_COMMIT_COUNT" >> $GITHUB_OUTPUT
-          echo "today_date=$TODAY" >> $GITHUB_OUTPUT
+          echo "📝 기록 업데이트 중..."
+          echo "사유: $REASON"
+          echo "기간: $PERIOD (${YEAR}년 ${WEEK_NUMBER}주차)"
+          echo "커밋: $COMMIT_COUNT개 ($STATUS)"
           
-          if [ $TODAY_COMMIT_COUNT -gt 0 ]; then
-            echo "today_success=true" >> $GITHUB_OUTPUT
-          else
-            echo "today_success=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Initialize records for Fork users
-        run: |
-          USERNAME="${{ github.repository_owner }}"
+          # 새 기록 데이터
+          NEW_RECORD=$(cat << EOF
+          {
+            "id": null,
+            "period": "$PERIOD",
+            "week": "${YEAR}년 ${WEEK_NUMBER}주차",
+            "commits": $COMMIT_COUNT,
+            "status": "$STATUS",
+            "success": $SUCCESS,
+            "weekStart": "$WEEK_START",
+            "weekEnd": "$WEEK_END"
+          }
+          EOF
+          )
           
-          # Fork 사용자인지 확인 (원본 소유자가 아닌 경우)
-          if [ "$USERNAME" != "tlqhrm" ]; then
-            echo "🔄 Fork 사용자 ($USERNAME) 감지 - 기록 초기화 확인 중..."
+          if [ "$SHOULD_ADD" = "true" ]; then
+            echo "🆕 새 기록 추가 모드"
             
-            # 기존 record.md가 다른 사용자의 데이터를 포함하고 있는지 확인
-            NEEDS_INIT=false
-            if [ -f record.md ]; then
-              # record.md 헤더에서 사용자명 확인
-              HEADER_USER=$(grep "^# " record.md | head -1 | sed 's/# \(.*\) - Weekly Commit Challenge Record/\1/' | tr -d '\r\n')
-              if [ -n "$HEADER_USER" ] && [ "$HEADER_USER" != "$USERNAME" ]; then
-                echo "📝 다른 사용자($HEADER_USER) 기록 발견 - $USERNAME 기록으로 초기화합니다"
-                NEEDS_INIT=true
-              elif grep -q "tlqhrm" record.md && [ "$USERNAME" != "tlqhrm" ]; then
-                echo "📝 원본 사용자 기록 발견 - $USERNAME 기록으로 초기화합니다"  
-                NEEDS_INIT=true
-              fi
-            fi
-            
-            # record.json도 확인
+            # 기존 기록이 있으면 가져오기
             if [ -f record.json ]; then
-              JSON_USER=$(cat record.json | grep -o '"username"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/"username"[[:space:]]*:[[:space:]]*"\([^"]*\)"/\1/')
-              if [ -n "$JSON_USER" ] && [ "$JSON_USER" != "$USERNAME" ]; then
-                echo "📝 record.json에서 다른 사용자($JSON_USER) 기록 발견 - 초기화 필요"
-                NEEDS_INIT=true
-              fi
+              EXISTING_RECORDS=$(cat record.json | jq '.records')
+            else
+              EXISTING_RECORDS="[]"
             fi
             
-            if [ "$NEEDS_INIT" = true ]; then
-              
-              # 새로운 빈 record.md 생성
-              cat > record.md << EOF
+            # ID 할당 (마지막 ID + 1)
+            NEXT_ID=$(echo "$EXISTING_RECORDS" | jq 'length + 1')
+            NEW_RECORD=$(echo "$NEW_RECORD" | jq ".id = $NEXT_ID")
+            
+            # 새 기록을 기존 기록에 추가
+            UPDATED_RECORDS=$(echo "$EXISTING_RECORDS" | jq ". + [$NEW_RECORD]")
+            
+          else
+            echo "🔄 기존 기록 업데이트 모드"
+            
+            # 기존 기록에서 현재 주 기록 찾아서 업데이트
+            EXISTING_RECORDS=$(cat record.json | jq '.records')
+            UPDATED_RECORDS=$(echo "$EXISTING_RECORDS" | jq --arg weekStart "$WEEK_START" --argjson newRecord "$NEW_RECORD" '
+              map(if .weekStart == $weekStart then 
+                ($newRecord | .id = .id)
+              else 
+                . 
+              end)
+            ')
+          fi
+          
+          # 최종 JSON 생성
+          cat > record.json << EOF
+          {
+            "username": "$USERNAME",
+            "avatarUrl": "$AVATAR_URL",
+            "lastUpdated": "$(TZ='Asia/Seoul' date -Iseconds)",
+            "records": $UPDATED_RECORDS
+          }
+          EOF
+          
+          echo "✅ record.json 업데이트 완료"
+
+      - name: Update record.md
+        if: steps.skip_check.outputs.should_skip == 'false' && (steps.should_add_record.outputs.should_add == 'true' || steps.existing_records.outputs.has_records == 'true')
+        run: |
+          USERNAME="${{ github.repository_owner }}"
+          
+          echo "📝 record.md 업데이트 중..."
+          
+          # record.md 생성
+          cat > record.md << EOF
           # $USERNAME - Weekly Commit Challenge Record
           
           ## 📊 기록 테이블
@@ -237,451 +342,50 @@ jobs:
           | ID | 기간 | 주차 | 커밋 수 | 성공 여부 |
           | --- | --- | --- | --- | --- |
           EOF
-              
-              # 빈 record.json 생성
-              cat > record.json << EOF
-          {
-            "username": "$USERNAME",
-            "avatarUrl": "${{ steps.check_commits.outputs.avatar_url }}",
-            "lastUpdated": "$(TZ='Asia/Seoul' date -Iseconds)",
-            "records": []
-          }
-          EOF
-              
-              # statistics.json도 초기화 (Fork 사용자용)
-              cat > statistics.json << EOF
-          {
-            "lastUpdated": "$(TZ='Asia/Seoul' date -Iseconds)",
-            "totalParticipants": 1,
-            "activeParticipants": 0,
-            "recordHolders": 0,
-            "weeklySuccessful": 0,
-            "averageStreak": 0,
-            "averageSuccessRate": 0,
-            "participants": [
-              {
-                "username": "$USERNAME",
-                "avatarUrl": "${{ steps.check_commits.outputs.avatar_url }}",
-                "lastPushed": "$(TZ='Asia/Seoul' date -Iseconds)",
-                "currentStreak": 0,
-                "maxStreak": 0,
-                "totalWeeks": 0,
-                "successRate": 0,
-                "currentWeekSuccess": false
-              }
-            ],
-            "rankingByStreak": [],
-            "rankingBySuccessRate": [],
-            "rankingByMaxStreak": []
-          }
-          EOF
-              
-              echo "✅ $USERNAME을 위한 새로운 기록 파일 생성 완료"
-            else
-              echo "ℹ️ 이미 $USERNAME의 기록이거나 초기화가 불필요합니다"
-            fi
-            
-            # Fork 사용자의 statistics 워크플로우 제거
-            if [ -f .github/workflows/collect-statistics.yml ]; then
-              echo "🗑️ Fork 사용자용으로 statistics 워크플로우를 제거합니다"
-              rm -f .github/workflows/collect-statistics.yml
-              echo "✅ collect-statistics.yml 워크플로우 제거 완료"
-            fi
-          else
-            echo "ℹ️ 원본 레포지토리 - 초기화 스킵"
-          fi
+          
+          # record.json에서 데이터 읽어서 테이블 생성
+          cat record.json | jq -r '.records[] | "| \(.id) | \(.period) | \(.week) | \(.commits) | \(.status) |"' >> record.md
+          
+          echo "✅ record.md 업데이트 완료"
 
-      - name: Update record.md
+      - name: Initialize Fork user records
+        if: github.repository_owner != 'tlqhrm'
         run: |
-          COMMIT_COUNT="${{ steps.check_commits.outputs.commit_count }}"
-          SUCCESS="${{ steps.check_commits.outputs.success }}"
-          WEEK_NUM="${{ steps.week_number.outputs.week_number }}"
-          PERIOD_START="${{ steps.check_commits.outputs.period_start }}"
-          PERIOD_END="${{ steps.check_commits.outputs.period_end }}"
-          PERIOD_TYPE="${{ steps.check_commits.outputs.period_type }}"
-          YEAR=$(TZ='Asia/Seoul' date '+%Y')
+          USERNAME="${{ github.repository_owner }}"
           
-          # 주차 기간 계산
-          START_DATE=$(TZ='Asia/Seoul' date -d "$PERIOD_START" '+%Y-%m-%d')
-          START_WEEKDAY=$(TZ='Asia/Seoul' date -d "$START_DATE" '+%u')
-          DAYS_TO_SUBTRACT=$((START_WEEKDAY - 1))
-          MONDAY=$(TZ='Asia/Seoul' date -d "$START_DATE - $DAYS_TO_SUBTRACT days" '+%m/%d')
-          SUNDAY=$(TZ='Asia/Seoul' date -d "$START_DATE - $DAYS_TO_SUBTRACT days + 6 days" '+%m/%d')
-          WEEK_PERIOD="$MONDAY ~ $SUNDAY"
+          echo "🔄 Fork 사용자 ($USERNAME) 감지 - 통계 워크플로우 제거"
           
-          if [ "$SUCCESS" = "true" ]; then
-            STATUS_EMOJI="✅ 성공"
-          else
-            STATUS_EMOJI="🔄 진행중 ($COMMIT_COUNT개)"
-          fi
-          
-          # 아바타 URL 가져오기
-          AVATAR_URL="${{ steps.check_commits.outputs.avatar_url }}"
-          
-          # 월요일인지 확인
-          if [ "$PERIOD_TYPE" = "지난주" ]; then
-            # 월요일: 지난주 + 오늘 두 개의 기록 처리
-            
-            echo "📊 월요일 처리: 지난주 + 이번주 기록 추가 (중복은 나중에 정리)"
-            
-            # 1. 지난주 기록
-            echo '{"period":"'$WEEK_PERIOD'","periodType":"지난주","dateRange":"'$PERIOD_START' ~ '$PERIOD_END'","year":'$YEAR',"weekNumber":'$WEEK_NUM',"commitCount":'$COMMIT_COUNT',"success":'$SUCCESS',"status":"'$STATUS_EMOJI'","lastUpdated":"'$(TZ='Asia/Seoul' date -Iseconds)'","username":"${{ github.repository_owner }}","avatarUrl":"'$AVATAR_URL'"}' > record_last_week.json
-            
-            # 2. 오늘(이번주) 기록 
-            TODAY_COMMIT_COUNT="${{ steps.check_today.outputs.today_commit_count }}"
-            TODAY_SUCCESS="${{ steps.check_today.outputs.today_success }}"
-            TODAY_DATE="${{ steps.check_today.outputs.today_date }}"
-            
-            # 이번주 주차 계산
-            THIS_WEEK_NUM=$((WEEK_NUM + 1))
-            
-            # 이번주 기간 계산 (월요일~일요일)
-            THIS_MONDAY=$(TZ='Asia/Seoul' date '+%m/%d')
-            THIS_SUNDAY=$(TZ='Asia/Seoul' date -d '+6 days' '+%m/%d')
-            THIS_WEEK_PERIOD="$THIS_MONDAY ~ $THIS_SUNDAY"
-            
-            if [ "$TODAY_SUCCESS" = "true" ]; then
-              TODAY_STATUS_EMOJI="✅ 성공"
-            else
-              TODAY_STATUS_EMOJI="🔄 진행중 ($TODAY_COMMIT_COUNT개)"
-            fi
-            
-            # record.json에 전체 기록 포함
-            {
-              echo '{'
-              echo '  "username": "'"${{ github.repository_owner }}"'",'
-              echo '  "avatarUrl": "'"$AVATAR_URL"'",'
-              echo '  "lastUpdated": "'$(TZ='Asia/Seoul' date -Iseconds)'",'
-              echo '  "records": ['
-              
-              # 기존 기록들 추가
-              if [ -f record.md.bak ]; then
-                first_record=true
-                while IFS= read -r line; do
-                  if [[ "$line" == "|"*"|"*"|"*"|"* && "$line" != *"기간"* && "$line" != *"---"* ]]; then
-                    # 파이프(|)로 구분된 필드를 올바르게 추출
-                    IFS='|' read -ra fields <<< "$line"
-                    # 빈 필드 제거하고 트림
-                    trimmed_fields=()
-                    for field in "${fields[@]}"; do
-                      trimmed=$(echo "$field" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-                      if [ -n "$trimmed" ]; then
-                        trimmed_fields+=("$trimmed")
-                      fi
-                    done
-                    
-                    # ID 컬럼이 있는지 확인
-                    if [ ${#trimmed_fields[@]} -eq 5 ]; then
-                      # ID 포함 (ID | 기간 | 주차 | 커밋 수 | 성공 여부)
-                      period="${trimmed_fields[1]}"
-                      week="${trimmed_fields[2]}"
-                      commits="${trimmed_fields[3]}"
-                      status="${trimmed_fields[4]}"
-                    else
-                      # ID 없음 (기간 | 주차 | 커밋 수 | 성공 여부)
-                      period="${trimmed_fields[0]}"
-                      week="${trimmed_fields[1]}"
-                      commits="${trimmed_fields[2]}"
-                      status="${trimmed_fields[3]}"
-                    fi
-                    
-                    if [ "$first_record" = false ]; then echo '    ,'; fi
-                    success="false"
-                    if [[ "$status" == *"✅"* && "$status" != *"🔄"* ]]; then
-                      success="true"
-                    fi
-                    echo '    {'
-                    echo '      "period": "'"$period"'",'
-                    echo '      "week": "'"$week"'",'
-                    echo '      "commits": '"$commits"','
-                    echo '      "success": '"$success"','
-                    echo '      "status": "'"$status"'"'
-                    echo -n '    }'
-                    first_record=false
-                  fi
-                done < record.md.bak
-                if [ "$first_record" = false ]; then echo ','; fi
-              fi
-              
-              # 지난주 기록 추가
-              echo '    {'
-              echo '      "period": "'"$WEEK_PERIOD"'",'
-              echo '      "week": "'"${YEAR}년 ${WEEK_NUM}주차"'",'
-              echo '      "commits": '"$COMMIT_COUNT"','
-              echo '      "success": '"$SUCCESS"','
-              echo '      "status": "'"$STATUS_EMOJI"'"'
-              echo '    },'
-              
-              # 이번주 기록 추가
-              echo '    {'
-              echo '      "period": "'"$THIS_WEEK_PERIOD"'",'
-              echo '      "week": "'"${YEAR}년 ${THIS_WEEK_NUM}주차"'",'
-              echo '      "commits": '"$TODAY_COMMIT_COUNT"','
-              echo '      "success": '"$TODAY_SUCCESS"','
-              echo '      "status": "'"$TODAY_STATUS_EMOJI"'"'
-              echo '    }'
-              echo '  ]'
-              echo '}'
-            } > record.json
-            
-            # 기존 record.md 백업
-            if [ -f record.md ]; then
-              cp record.md record.md.bak
-            fi
-            
-            # record.md에 두 기록 모두 포함 (오름차순: 오래된 것이 위로)
-            {
-              echo "# ${{ github.repository_owner }} - Weekly Commit Challenge Record"
-              echo ""
-              echo "## 📊 기록 테이블"
-              echo ""
-              echo "| ID | 기간 | 주차 | 커밋 수 | 성공 여부 |"
-              echo "| --- | --- | --- | --- | --- |"
-            } > record.md
-            
-            # 기존 기록이 있다면 추가 (오름차순 유지)
-            NEXT_ID=1
-            if [ -f record.md.bak ]; then
-              # 기존 데이터 추출하여 추가 (ID 포함)
-              while IFS= read -r line; do
-                if [[ "$line" == "|"*"|"*"|"*"|"* && "$line" != *"ID"* && "$line" != *"---"* ]]; then
-                  # 파이프(|)로 구분된 필드를 올바르게 추출
-                  IFS='|' read -ra fields <<< "$line"
-                  # 빈 필드 제거하고 트림
-                  trimmed_fields=()
-                  for field in "${fields[@]}"; do
-                    trimmed=$(echo "$field" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-                    if [ -n "$trimmed" ]; then
-                      trimmed_fields+=("$trimmed")
-                    fi
-                  done
-                  
-                  # ID 컬럼이 있는지 확인
-                  if [ ${#trimmed_fields[@]} -eq 5 ]; then
-                    # ID 포함 (ID | 기간 | 주차 | 커밋 수 | 성공 여부)
-                    period="${trimmed_fields[1]}"
-                    week="${trimmed_fields[2]}"
-                    commits="${trimmed_fields[3]}"
-                    status="${trimmed_fields[4]}"
-                  else
-                    # ID 없음 (기간 | 주차 | 커밋 수 | 성공 여부)
-                    period="${trimmed_fields[0]}"
-                    week="${trimmed_fields[1]}"
-                    commits="${trimmed_fields[2]}"
-                    status="${trimmed_fields[3]}"
-                  fi
-                  
-                  
-                  echo "| $NEXT_ID | $period | $week | $commits | $status |" >> record.md
-                  NEXT_ID=$((NEXT_ID + 1))
-                fi
-              done < <(grep "^|.*|.*|.*|.*" record.md.bak | grep -v "ID\|---" || true)
-            fi
-            
-            # 새 기록들 추가 (지난주 먼저, 이번주 나중에)
-            echo "| $NEXT_ID | $WEEK_PERIOD | ${YEAR}년 ${WEEK_NUM}주차 | $COMMIT_COUNT | $STATUS_EMOJI |" >> record.md
-            NEXT_ID=$((NEXT_ID + 1))
-            echo "| $NEXT_ID | $THIS_WEEK_PERIOD | ${YEAR}년 ${THIS_WEEK_NUM}주차 | $TODAY_COMMIT_COUNT | $TODAY_STATUS_EMOJI |" >> record.md
-            
-          else
-            # 화~일요일: 이번주 기록 추가 (중복은 나중에 정리)
-            {
-              echo '{'
-              echo '  "username": "'"${{ github.repository_owner }}"'",'
-              echo '  "avatarUrl": "'"$AVATAR_URL"'",'
-              echo '  "lastUpdated": "'$(TZ='Asia/Seoul' date -Iseconds)'",'
-              echo '  "records": ['
-              
-              # 기존 기록들 추가
-              if [ -f record.md.bak ]; then
-                first_record=true
-                while IFS= read -r line; do
-                  if [[ "$line" == "|"*"|"*"|"*"|"* && "$line" != *"기간"* && "$line" != *"---"* ]]; then
-                    if [ "$first_record" = false ]; then echo '    ,'; fi
-                    # 파이프(|)로 구분된 필드를 올바르게 추출
-                    IFS='|' read -ra fields <<< "$line"
-                    # 빈 필드 제거하고 트림
-                    trimmed_fields=()
-                    for field in "${fields[@]}"; do
-                      trimmed=$(echo "$field" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-                      if [ -n "$trimmed" ]; then
-                        trimmed_fields+=("$trimmed")
-                      fi
-                    done
-                    
-                    # ID 컬럼이 있는지 확인
-                    if [ ${#trimmed_fields[@]} -eq 5 ]; then
-                      # ID 포함 (ID | 기간 | 주차 | 커밋 수 | 성공 여부)
-                      period="${trimmed_fields[1]}"
-                      week="${trimmed_fields[2]}"
-                      commits="${trimmed_fields[3]}"
-                      status="${trimmed_fields[4]}"
-                    else
-                      # ID 없음 (기간 | 주차 | 커밋 수 | 성공 여부)
-                      period="${trimmed_fields[0]}"
-                      week="${trimmed_fields[1]}"
-                      commits="${trimmed_fields[2]}"
-                      status="${trimmed_fields[3]}"
-                    fi
-                    success="false"
-                    if [[ "$status" == *"✅"* && "$status" != *"🔄"* ]]; then
-                      success="true"
-                    fi
-                    echo '    {'
-                    echo '      "period": "'"$period"'",'
-                    echo '      "week": "'"$week"'",'
-                    echo '      "commits": '"$commits"','
-                    echo '      "success": '"$success"','
-                    echo '      "status": "'"$status"'"'
-                    echo -n '    }'
-                    first_record=false
-                  fi
-                done < record.md.bak
-                if [ "$first_record" = false ]; then echo ','; fi
-              fi
-              
-              # 현재 기록 추가 (항상 마지막에)
-              echo '    {'
-              echo '      "period": "'"$WEEK_PERIOD"'",'
-              echo '      "week": "'"${YEAR}년 ${WEEK_NUM}주차"'",'
-              echo '      "commits": '"$COMMIT_COUNT"','
-              echo '      "success": '"$SUCCESS"','
-              echo '      "status": "'"$STATUS_EMOJI"'"'
-              echo '    }'
-              echo '  ]'
-              echo '}'
-            } > record.json
-            
-            # 기존 record.md 백업
-            if [ -f record.md ]; then
-              cp record.md record.md.bak
-            fi
-            
-            {
-              echo "# ${{ github.repository_owner }} - Weekly Commit Challenge Record"
-              echo ""
-              echo "## 📊 기록 테이블"
-              echo ""
-              echo "| ID | 기간 | 주차 | 커밋 수 | 성공 여부 |"
-              echo "| --- | --- | --- | --- | --- |"
-            } > record.md
-            
-            # 기존 기록이 있다면 추가 (오름차순 유지)
-            NEXT_ID=1
-            if [ -f record.md.bak ]; then
-              # 기존 데이터 추출하여 추가 (ID 포함)
-              while IFS= read -r line; do
-                if [[ "$line" == "|"*"|"*"|"*"|"* && "$line" != *"ID"* && "$line" != *"---"* ]]; then
-                  # 파이프(|)로 구분된 필드를 올바르게 추출
-                  IFS='|' read -ra fields <<< "$line"
-                  # 빈 필드 제거하고 트림
-                  trimmed_fields=()
-                  for field in "${fields[@]}"; do
-                    trimmed=$(echo "$field" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-                    if [ -n "$trimmed" ]; then
-                      trimmed_fields+=("$trimmed")
-                    fi
-                  done
-                  
-                  # ID 컬럼이 있는지 확인
-                  if [ ${#trimmed_fields[@]} -eq 5 ]; then
-                    # ID 포함 (ID | 기간 | 주차 | 커밋 수 | 성공 여부)
-                    period="${trimmed_fields[1]}"
-                    week="${trimmed_fields[2]}"
-                    commits="${trimmed_fields[3]}"
-                    status="${trimmed_fields[4]}"
-                  else
-                    # ID 없음 (기간 | 주차 | 커밋 수 | 성공 여부)
-                    period="${trimmed_fields[0]}"
-                    week="${trimmed_fields[1]}"
-                    commits="${trimmed_fields[2]}"
-                    status="${trimmed_fields[3]}"
-                  fi
-                  echo "| $NEXT_ID | $period | $week | $commits | $status |" >> record.md
-                  NEXT_ID=$((NEXT_ID + 1))
-                fi
-              done < <(grep "^|.*|.*|.*|.*" record.md.bak | grep -v "ID\|---" || true)
-            fi
-            
-            # 새 기록 추가
-            echo "| $NEXT_ID | $WEEK_PERIOD | ${YEAR}년 ${WEEK_NUM}주차 | $COMMIT_COUNT | $STATUS_EMOJI |" >> record.md
+          # Fork 사용자의 statistics 워크플로우 제거
+          if [ -f .github/workflows/collect-statistics.yml ]; then
+            rm -f .github/workflows/collect-statistics.yml
+            echo "✅ collect-statistics.yml 워크플로우 제거 완료"
           fi
 
-      - name: Cleanup duplicates
-        run: |
-          echo "🔧 중복 정리 스크립트 실행 중..."
-          chmod +x ./cleanup-duplicates.sh
-          ./cleanup-duplicates.sh
-
-      - name: Commit changes
+      - name: Commit and push changes
+        if: steps.skip_check.outputs.should_skip == 'false'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           
-          # 모든 변경사항 추가 (삭제된 파일 포함)
-          git add -A
+          # 변경된 파일 추가
+          git add record.json record.md
           
-          # 월요일인 경우 추가 파일도 포함
-          if [ "${{ steps.check_commits.outputs.period_type }}" = "지난주" ]; then
-            git add record.md record.json record_last_week.json
-          else
-            git add record.md record.json
+          # Fork 사용자의 경우 삭제된 워크플로우도 추가
+          if [ "${{ github.repository_owner }}" != "tlqhrm" ]; then
+            git add .github/workflows/ || true
           fi
           
+          # 변경사항이 있는지 확인
           if ! git diff --staged --quiet; then
             CURRENT_TIME=$(TZ='Asia/Seoul' date '+%m/%d %H:%M')
-            PERIOD_TYPE="${{ steps.check_commits.outputs.period_type }}"
-            if [ "$PERIOD_TYPE" = "지난주" ]; then
-              git commit -m "📊 ${{ steps.week_number.outputs.week_number }}주차 위클리 커밋 챌린지 기록 업데이트 (월요일: 지난주+이번주) ($CURRENT_TIME)"
-            else
-              git commit -m "📊 ${{ steps.week_number.outputs.week_number }}주차 위클리 커밋 챌린지 기록 업데이트 ($CURRENT_TIME)"
-            fi
+            WEEK_NUMBER="${{ steps.week_range.outputs.week_number }}"
+            REASON="${{ steps.should_add_record.outputs.reason }}"
             
-            # Push 시도 (재시도 로직 포함)
-            echo "🔄 변경사항을 원격 저장소에 푸시 중..."
+            git commit -m "📊 ${WEEK_NUMBER}주차 위클리 커밋 챌린지 기록 업데이트 ($REASON) - $CURRENT_TIME"
             
-            # 3번까지 재시도
-            PUSH_SUCCESS=false
-            for i in {1..3}; do
-              echo "📤 Push 시도 $i/3..."
-              
-              if git push; then
-                echo "✅ Push 성공!"
-                PUSH_SUCCESS=true
-                break
-              else
-                echo "⚠️ Push 실패 ($i/3) - 원격 변경사항과 충돌이 발생했습니다."
-                
-                if [ $i -lt 3 ]; then
-                  echo "🔄 원격 변경사항을 가져와서 자동 병합을 시도합니다..."
-                  
-                  # 원격 변경사항 가져오기
-                  git fetch origin master
-                  
-                  # rebase를 시도하여 충돌 해결
-                  if git rebase origin/master; then
-                    echo "✅ 자동 rebase 성공 - 다시 push를 시도합니다..."
-                    continue
-                  else
-                    echo "⚠️ Rebase 실패 - rebase를 중단하고 다시 시도합니다..."
-                    git rebase --abort
-                    
-                    # 5초 대기 후 재시도
-                    echo "⏳ 5초 대기 후 재시도..."
-                    sleep 5
-                  fi
-                fi
-              fi
-            done
-            
-            # 모든 시도가 실패한 경우 강제 푸시
-            if [ "$PUSH_SUCCESS" = false ]; then
-              echo "⚠️ 모든 push 시도 실패 - 강제 푸시를 시도합니다..."
-              git push --force-with-lease
-              echo "✅ 강제 푸시로 기록 파일 업데이트 완료"
-            else
-              echo "✅ 기록 파일 업데이트 완료"
-            fi
+            echo "🚀 변경사항 푸시 중..."
+            git push
+            echo "✅ 기록 업데이트 완료"
           else
-            echo "ℹ️ 변경사항이 없어 커밋하지 않습니다."
+            echo "ℹ️ 변경사항이 없어 커밋하지 않습니다"
           fi
