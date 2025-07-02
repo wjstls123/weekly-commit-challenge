@@ -1,1 +1,14 @@
-{"period":"06/30 ~ 07/06","periodType":"이번주","dateRange":"2025-06-30 ~ 2025-07-02","year":2025,"weekNumber":26,"commitCount":2,"success":true,"status":"✅ 성공","lastUpdated":"2025-07-02T10:34:21+09:00","username":"tlqhrm","avatarUrl":"https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4"}
+{
+  "username": "tlqhrm",
+  "avatarUrl": "https://avatars.githubusercontent.com/u/85216782?u=bb6b168d27265e788e395fbed052b64e691c556c&v=4",
+  "lastUpdated": "2025-07-02T12:39:35+09:00",
+  "records": [
+    {
+      "period": "06/30 ~ 07/06",
+      "week": "2025년 26주차",
+      "commits": 2,
+      "success": true,
+      "status": "✅ 성공"
+    }
+  ]
+}
