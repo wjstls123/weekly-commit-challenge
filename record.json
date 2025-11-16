@@ -1,7 +1,7 @@
 {
   "username": "wjstls123",
   "avatarUrl": "https://avatars.githubusercontent.com/u/218948587?v=4",
-  "lastUpdated": "2025-11-16T23:56:09+09:00",
+  "lastUpdated": "2025-11-17T00:56:12+09:00",
   "records": [
     {
       "id": 1,
@@ -202,6 +202,16 @@
       "success": false,
       "weekStart": "2025-11-10",
       "weekEnd": "2025-11-16"
+    },
+    {
+      "id": 21,
+      "period": "11/17 ~ 11/23",
+      "week": "2025년 46주차",
+      "commits": 0,
+      "status": "❌ 실패",
+      "success": false,
+      "weekStart": "2025-11-17",
+      "weekEnd": "2025-11-23"
     }
   ]
 }
